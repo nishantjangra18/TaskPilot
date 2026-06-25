@@ -1,0 +1,350 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #F8FAFC;
+  --bg-secondary: #FFFFFF;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --border-color: #E2E8F0;
+  --accent-color: #2563EB;
+}
+
+.dark {
+  --bg-primary: #0A0A0B;
+  --bg-secondary: #18181B;
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --accent-color: #7C3AED;
+}
+
+@layer base {
+  body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    @apply antialiased font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Custom scrollbar matching clean minimal design */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ── Global Theme Transitions ── */
+html,
+body,
+#root,
+.app-layout,
+header,
+nav,
+section,
+div,
+h1,
+h2,
+h3,
+h4,
+p,
+span,
+button,
+a {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* ── Premium SaaS Dark Theme Global Overrides ── */
+.dark body {
+  background-color: #0A0A0B !important;
+  background-image: radial-gradient(circle at top,
+      rgba(124, 58, 237, 0.12),
+      transparent 50%) !important;
+  background-attachment: fixed !important;
+  color: #FAFAFA !important;
+}
+
+/* Enforce premium soft borders in dark mode globally */
+.dark .border,
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .border-slate-700,
+.dark .border-slate-800,
+.dark .border-slate-900,
+.dark .border-slate-200\/50,
+.dark .border-slate-200\/60,
+.dark .border-slate-800\/60,
+.dark .border-slate-800\/80 {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.dark .divide-slate-50> :not([hidden])~ :not([hidden]),
+.dark .divide-slate-100> :not([hidden])~ :not([hidden]),
+.dark .divide-slate-200> :not([hidden])~ :not([hidden]),
+.dark .divide-slate-700> :not([hidden])~ :not([hidden]),
+.dark .divide-slate-800> :not([hidden])~ :not([hidden]),
+.dark .divide-slate-800\/80> :not([hidden])~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Typography contrast improvements */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark .text-slate-950,
+.dark .text-slate-900,
+.dark .text-slate-850,
+.dark .text-slate-800,
+.dark .text-white {
+  color: #FAFAFA !important;
+}
+
+.dark .text-slate-400,
+.dark .text-slate-500,
+.dark .text-slate-505,
+.dark .text-slate-655,
+.dark .text-slate-455 {
+  color: #A1A1AA !important;
+}
+
+/* Swap blue accents to violet in dark mode */
+.dark .bg-blue-600 {
+  background-color: #7C3AED !important;
+}
+
+.dark .bg-blue-500 {
+  background-color: #8B5CF6 !important;
+}
+
+.dark .bg-blue-50 {
+  background-color: rgba(124, 58, 237, 0.12) !important;
+}
+
+.dark .bg-blue-50\/60 {
+  background-color: rgba(124, 58, 237, 0.12) !important;
+}
+
+.dark .bg-blue-50\/70 {
+  background-color: rgba(124, 58, 237, 0.15) !important;
+}
+
+.dark .bg-blue-50\/80 {
+  background-color: rgba(124, 58, 237, 0.18) !important;
+}
+
+.dark .bg-blue-950\/20,
+.dark .bg-blue-950\/30,
+.dark .bg-blue-950\/40 {
+  background-color: rgba(124, 58, 237, 0.15) !important;
+}
+
+.dark .text-blue-650,
+.dark .text-blue-600,
+.dark .text-blue-500,
+.dark .text-blue-400 {
+  color: #A78BFA !important;
+}
+
+.dark .border-blue-500,
+.dark .border-blue-200,
+.dark .border-blue-100 {
+  border-color: rgba(124, 58, 237, 0.3) !important;
+}
+
+.dark .border-blue-100\/50 {
+  border-color: rgba(124, 58, 237, 0.15) !important;
+}
+
+.dark .focus\:ring-blue-100:focus,
+.dark .focus\:ring-blue-950:focus {
+  --tw-ring-color: rgba(124, 58, 237, 0.2) !important;
+}
+
+/* Landing Page Specific Fixes */
+.dark .bg-slate-50\/30,
+.dark .bg-slate-50\/40 {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.dark .bg-white {
+  background-color: transparent !important;
+}
+
+.dark header.bg-white\/95 {
+  background-color: rgba(10, 10, 11, 0.95) !important;
+}
+
+.dark header.bg-white\/70 {
+  background-color: rgba(10, 10, 11, 0.70) !important;
+}
+
+.dark footer.bg-white {
+  background-color: #0A0A0B !important;
+}
+
+/* Card floating styling for premium look */
+.dark .bg-white.dark\:bg-slate-900,
+.dark #features .bg-white,
+.dark #about .bg-slate-50\/40 {
+  background-color: rgba(24, 24, 27, 0.65) !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 16px !important;
+}
+
+.dark .bg-white.dark\:bg-slate-900:hover,
+.dark #features .bg-white:hover,
+.dark #about .bg-slate-50\/40:hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(139, 92, 246, 0.2) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(139, 92, 246, 0.03) !important;
+}
+
+/* Soft dark scrollbar scroll thumb */
+.dark ::-webkit-scrollbar-thumb {
+  background: #27272A;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3F3F46;
+}
+
+/* Hover lift transitions */
+.dark .hover\:-translate-y-0\.5:hover,
+.dark .hover\:-translate-y-1\.5:hover,
+.dark .hover\:-translate-y-2:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Typo fallback safety nets */
+.dark .bg-slate-955,
+.dark .dark\:bg-slate-955,
+.dark .bg-slate-955\/15,
+.dark .bg-slate-955\/20 {
+  background-color: #0A0A0B !important;
+}
+
+.dark .text-slate-205,
+.dark .text-slate-105 {
+  color: #FAFAFA !important;
+}
+
+/* ── Global Cursor and Caret Refinements ── */
+/* Set default cursor for layouts, containers, sections and common elements */
+html,
+body,
+#root,
+.app-layout,
+div,
+section,
+main,
+aside,
+header,
+footer,
+article,
+nav,
+p,
+span,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+label,
+svg {
+  cursor: default;
+}
+
+/* Ensure only actual inputs, textareas, and editable fields show text cursor */
+input,
+textarea,
+[contenteditable="true"] {
+  cursor: text;
+}
+
+/* Ensure interactive elements use pointer cursor */
+a,
+button,
+select,
+option,
+[role="button"],
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Clicking on general elements should NOT show a blinking text caret */
+* {
+  caret-color: transparent;
+}
+
+/* Enable caret color only for text inputs, textareas, and contenteditable elements */
+input,
+textarea,
+[contenteditable="true"] {
+  caret-color: var(--text-primary, auto);
+}
+
+/* Remove outline/focus borders on general divs that don't need it */
+div:focus,
+section:focus,
+main:focus,
+aside:focus {
+  outline: none;
+}
+@keyframes taskpilot-toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translate3d(18px, -8px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes taskpilot-toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.taskpilot-toast-card {
+  animation: taskpilot-toast-slide-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.taskpilot-toast-progress {
+  width: 100%;
+  animation: taskpilot-toast-progress 5000ms linear forwards;
+}
+
+.taskpilot-toast-card:hover .taskpilot-toast-progress {
+  animation-play-state: paused;
+}
+
+
+
