@@ -3,9 +3,11 @@ import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { firebaseAuth, firestoreDb, googleProvider, isFirebaseConfigured } from '../config/firebase';
 
+import { API_BASE_URL } from '../config/api';
+
 const AuthContext = createContext();
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = API_BASE_URL;
 
 const getFirebaseErrorMessage = (error) => {
   const code = error?.code || '';

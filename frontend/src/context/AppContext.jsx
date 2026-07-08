@@ -1,10 +1,11 @@
-﻿import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import io from 'socket.io-client';
+import { API_BASE_URL } from '../config/api';
 
 const AppContext = createContext();
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = API_BASE_URL;
 
 export const AppProvider = ({ children }) => {
   const { user, token, isAuthenticated, updateProfile: authUpdateProfile } = useAuth();
@@ -119,7 +120,8 @@ export const AppProvider = ({ children }) => {
     let socket;
     if (isAuthenticated && token && currentUser) {
       // Connect to Socket.io backend server
-      socket = io('http://localhost:5000');
+      const socketUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL.slice(0, -4) : API_BASE_URL;
+      socket = io(socketUrl);
 
       socket.on('connect', () => {
         console.log('Socket.io connected:', socket.id);

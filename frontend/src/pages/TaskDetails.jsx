@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import Avatar from '../components/Avatar';
+import { API_BASE_URL } from '../config/api';
 import { getProjectTheme } from '../utils/projectTheme';
 import { getTaskDependencyView, getTaskId, mergeDependency } from '../services/smartDependencyManager';
 import {
@@ -1055,7 +1056,8 @@ const TaskDetails = () => {
                           <button
                             onClick={() => {
                               try {
-                                const downloadUrl = attUrl && attUrl.startsWith('http') ? attUrl : `http://localhost:5000${attUrl}`;
+                                const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL.slice(0, -4) : API_BASE_URL;
+                                const downloadUrl = attUrl && attUrl.startsWith('http') ? attUrl : `${baseUrl}${attUrl}`;
                                 window.open(downloadUrl, '_blank');
                               } catch (e) {
                                 console.error('Error opening attachment URL:', e);

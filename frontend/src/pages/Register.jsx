@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeProvider';
 import GoogleAuthButton, { AuthDivider } from '../components/GoogleAuthButton';
+import { showAuthToast } from '../components/AuthToast';
 import { ArrowRight, Sun, Moon } from 'lucide-react';
 
 const Register = () => {
