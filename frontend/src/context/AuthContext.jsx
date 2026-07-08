@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
 
   const exchangeFirebaseUser = async (firebaseUser) => {
     const idToken = await firebaseUser.getIdToken();
-    const res = await fetch(`${API_URL}/auth/firebase-google`, {
+    const res = await fetch(`${API_URL}/api/auth/firebase-google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken }),
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem('taskpilot_token');
       if (storedToken) {
         try {
-          const res = await fetch(`${API_URL}/auth/profile`, {
+          const res = await fetch(`${API_URL}/api/auth/profile`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
 
   const handleLogin = async (email, password) => {
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }) => {
 
   const handleRegister = async (name, email, password) => {
     try {
-      const res = await fetch(`${API_URL}/auth/register`, {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, avatar: '', title: '' }),
@@ -199,6 +199,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const handleLogout = async () => {
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+      });
+    } catch (err) {
+      console.error('Logout API call failed:', err);
+    }
     localStorage.removeItem('taskpilot_token');
     setToken(null);
     setUser(null);
@@ -214,7 +225,7 @@ export const AuthProvider = ({ children }) => {
 
   const handleUpdateProfile = async (updates) => {
     try {
-      const res = await fetch(`${API_URL}/auth/profile`, {
+      const res = await fetch(`${API_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

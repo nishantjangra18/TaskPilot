@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '../config/api';
 
-const API_URL = API_BASE_URL;
+const API_URL = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
 
 const getAuthToken = () => localStorage.getItem('taskpilot_token');
 
