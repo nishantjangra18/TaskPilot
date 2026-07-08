@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+﻿import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -663,7 +663,7 @@ const Dashboard = () => {
                                 <Avatar name={u.name} avatar={u.avatar} className="h-6 w-6 text-[8px] border border-slate-100 dark:border-slate-800" />
                                 <div className="flex flex-col leading-tight">
                                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{u.name}</span>
-                                  <span className="text-[9.5px] text-slate-400 dark:text-slate-500">{u.title} • {u.email}</span>
+                                  <span className="text-[9.5px] text-slate-400 dark:text-slate-500">{u.title} â€¢ {u.email}</span>
                                 </div>
                               </div>
                             );
@@ -735,6 +735,15 @@ const Dashboard = () => {
                             if (!n.isRead) {
                               await markNotificationAsRead(n._id || n.id);
                             }
+                            if (['connection_request_received', 'connection_accepted', 'connection_declined'].includes(n.type)) {
+                              navigate('/network', {
+                                state: {
+                                  networkTab: 'requests',
+                                  requestList: n.metadata?.requestList || 'incoming',
+                                  connectionId: n.metadata?.connectionId,
+                                },
+                              });
+                            }
                           }}
                           className={`p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors cursor-pointer text-xs flex items-start gap-3 ${!n.isRead ? 'bg-violet-50/10 dark:bg-violet-950/5 font-semibold' : ''}`}
                         >
@@ -742,6 +751,9 @@ const Dashboard = () => {
                             {n.type === 'invitation_received' && <UserPlus className="h-4 w-4 text-violet-500" />}
                             {n.type === 'invitation_accepted' && <UserCheck className="h-4 w-4 text-emerald-500" />}
                             {n.type === 'invitation_rejected' && <UserMinus className="h-4 w-4 text-rose-500" />}
+                            {n.type === 'connection_request_received' && <UserPlus className="h-4 w-4 text-violet-500" />}
+                            {n.type === 'connection_accepted' && <UserCheck className="h-4 w-4 text-emerald-500" />}
+                            {n.type === 'connection_declined' && <UserMinus className="h-4 w-4 text-rose-500" />}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-slate-700 dark:text-slate-200 leading-snug break-words">{n.message}</p>
@@ -1157,6 +1169,7 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
 
 
 

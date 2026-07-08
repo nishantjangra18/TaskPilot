@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+﻿const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Project = require('../models/Project');
 const { verifyFirebaseIdToken } = require('../config/firebaseAdmin');
@@ -10,16 +10,69 @@ const generateToken = (id) => {
   });
 };
 
+const SKILL_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+const EXPERIENCE_LEVELS = ['', '0-1', '1-2', '2-4', '4-6', '6+'];
+
+const makeUsername = (name = '', email = '') => {
+  const base = (name || email.split('@')[0] || 'user')
+    .toLowerCase()
+    .replace(/[^a-z0-9_]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 24);
+  return base || `user_${Date.now().toString(36)}`;
+};
+const normalizeSkills = (skills = []) => {
+  if (!Array.isArray(skills)) return [];
+
+  const seen = new Set();
+  return skills
+    .map(skill => ({
+      name: String(skill?.name || '').trim(),
+      category: String(skill?.category || 'Other Skills').trim() || 'Other Skills',
+      level: SKILL_LEVELS.includes(skill?.level) ? skill.level : 'Intermediate',
+      experience: EXPERIENCE_LEVELS.includes(skill?.experience) ? skill.experience : '',
+    }))
+    .filter(skill => {
+      const key = skill.name.toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 50);
+};
+
+const generateUniqueUsername = async (name = '', email = '') => {
+  const base = makeUsername(name, email);
+  let candidate = base;
+  let suffix = 1;
+
+  while (await User.exists({ username: candidate })) {
+    suffix += 1;
+    candidate = `${base.slice(0, 30)}_${suffix}`;
+  }
+
+  return candidate;
+};
+const normalizeCapacity = value => {
+  const capacity = Number(value);
+  if (!Number.isFinite(capacity)) return undefined;
+  return Math.max(0, Math.min(80, Math.round(capacity)));
+};
+
 const serializeUser = (user, includeToken = true) => ({
   _id: user._id,
   uid: user.firebaseUid,
   name: user.name,
   displayName: user.name,
   email: user.email,
+  username: user.username || makeUsername(user.name, user.email),
   avatar: user.avatar,
   photoURL: user.avatar,
   title: user.title,
+  availability: user.availability || 'available',
   theme: user.theme,
+  skills: normalizeSkills(user.skills),
+  capacity: user.capacity ?? 40,
   provider: user.provider,
   emailVerified: user.emailVerified,
   createdAt: user.createdAt,
@@ -51,6 +104,7 @@ exports.register = async (req, res) => {
       password,
       avatar: avatar || null,
       title: title || '',
+      username: await generateUniqueUsername(name, normalizedEmail),
       theme: theme || 'light',
       provider: 'password',
       lastLogin: new Date(),
@@ -119,6 +173,7 @@ exports.firebaseGoogleLogin = async (req, res) => {
         email,
         avatar: decoded.picture || null,
         title: '',
+        username: await generateUniqueUsername(decoded.name, email),
         provider: decoded.firebase?.sign_in_provider || 'google.com',
         emailVerified: Boolean(decoded.email_verified),
         lastLogin: now,
@@ -172,7 +227,13 @@ exports.updateProfile = async (req, res) => {
       user.email = req.body.email || user.email;
       user.avatar = req.body.avatar !== undefined ? req.body.avatar : user.avatar;
       user.title = req.body.title !== undefined ? req.body.title : user.title;
+      user.availability = ['available', 'busy', 'dnd', 'offline'].includes(req.body.availability) ? req.body.availability : user.availability;
       user.theme = req.body.theme !== undefined ? req.body.theme : user.theme;
+      if (req.body.skills !== undefined) user.skills = normalizeSkills(req.body.skills);
+      if (req.body.capacity !== undefined) {
+        const nextCapacity = normalizeCapacity(req.body.capacity);
+        if (nextCapacity !== undefined) user.capacity = nextCapacity;
+      }
 
       const updatedUser = await user.save();
 
@@ -198,7 +259,7 @@ exports.getUsers = async (req, res) => {
         return res.json({ success: true, data: [] });
       }
 
-      const user = await User.findOne({ email: normalizedEmail }).select('name email avatar title');
+      const user = await User.findOne({ email: normalizedEmail }).select('name email username avatar title availability skills capacity');
       return res.json({ success: true, data: user ? [user] : [] });
     }
 
@@ -212,9 +273,14 @@ exports.getUsers = async (req, res) => {
       (project.members || []).forEach(memberId => allowedUserIds.add(memberId.toString()));
     });
 
-    const users = await User.find({ _id: { $in: Array.from(allowedUserIds) } }).select('name email avatar title');
+    const users = await User.find({ _id: { $in: Array.from(allowedUserIds) } }).select('name email username avatar title availability skills capacity');
     res.json({ success: true, data: users });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+
+
+

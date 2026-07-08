@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import io from 'socket.io-client';
 
@@ -12,7 +12,7 @@ export const AppProvider = ({ children }) => {
   // Derive currentUser from auth
   const currentUser = user ? { ...user, id: user._id, title: user.title || '' } : null;
 
-  // Core state — starts empty, populated from API
+  // Core state â€” starts empty, populated from API
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -22,6 +22,10 @@ export const AppProvider = ({ children }) => {
   const [conversations, setConversations] = useState([]);
   const [activeMeetings, setActiveMeetings] = useState([]);
   const [meetings, setMeetings] = useState([]);
+  const [networkConnections, setNetworkConnections] = useState([]);
+  const [incomingConnectionRequests, setIncomingConnectionRequests] = useState([]);
+  const [outgoingConnectionRequests, setOutgoingConnectionRequests] = useState([]);
+  const [networkSuggestions, setNetworkSuggestions] = useState([]);
   const [latestNotification, setLatestNotification] = useState(null);
   const [latestInvitation, setLatestInvitation] = useState(null);
   const [latestMeetingEvent, setLatestMeetingEvent] = useState(null);
@@ -49,7 +53,7 @@ export const AppProvider = ({ children }) => {
     if (!token || !isAuthenticated) return;
     setDataLoading(true);
     try {
-      const [projectsRes, tasksRes, logsRes, usersRes, invitationsRes, notificationsRes, chatsRes, activeMeetingsRes, meetingsRes] = await Promise.all([
+      const [projectsRes, tasksRes, logsRes, usersRes, invitationsRes, notificationsRes, chatsRes, activeMeetingsRes, meetingsRes, networkRes, suggestionsRes] = await Promise.all([
         apiFetch('/projects'),
         apiFetch('/tasks'),
         apiFetch('/projects/logs'),
@@ -59,6 +63,8 @@ export const AppProvider = ({ children }) => {
         apiFetch('/chats'),
         apiFetch('/meetings/active'),
         apiFetch('/meetings'),
+        apiFetch('/network'),
+        apiFetch('/network/suggestions'),
       ]);
       setProjects(projectsRes.data || []);
       setTasks(tasksRes.data || []);
@@ -69,6 +75,10 @@ export const AppProvider = ({ children }) => {
       setConversations(chatsRes.data || []);
       setActiveMeetings(activeMeetingsRes.data || []);
       setMeetings(meetingsRes.data || []);
+      setNetworkConnections(networkRes.data?.connections || []);
+      setIncomingConnectionRequests(networkRes.data?.incoming || []);
+      setOutgoingConnectionRequests(networkRes.data?.outgoing || []);
+      setNetworkSuggestions(suggestionsRes.data || []);
     } catch (err) {
       console.error('Failed to fetch workspace data:', err);
     }
@@ -90,6 +100,10 @@ export const AppProvider = ({ children }) => {
       setConversations([]);
       setActiveMeetings([]);
       setMeetings([]);
+      setNetworkConnections([]);
+      setIncomingConnectionRequests([]);
+      setOutgoingConnectionRequests([]);
+      setNetworkSuggestions([]);
         setLatestNotification(null);
         setLatestInvitation(null);
         setLatestMeetingEvent(null);
@@ -128,6 +142,9 @@ export const AppProvider = ({ children }) => {
           return [notification, ...prev];
         });
         setLatestNotification({ notification, receivedAt: Date.now() });
+        if (['connection_request_received', 'connection_accepted', 'connection_declined'].includes(notification.type)) {
+          refreshNetwork();
+        }
       });
 
       socket.on('member_list_updated', ({ projectId }) => {
@@ -153,6 +170,12 @@ export const AppProvider = ({ children }) => {
         console.log('Socket event: invitation_updated', invitation);
         setPendingInvitations(prev => prev.filter(inv => inv._id !== invitation._id));
         setLatestInvitation({ invitation, receivedAt: Date.now() });
+      });
+
+      socket.on('network_updated', () => {
+        console.log('Socket event: network_updated');
+        refreshNetwork();
+        refreshData();
       });
       socket.on('meeting_started', (meeting) => {
         console.log('Socket event: meeting_started', meeting);
@@ -237,18 +260,18 @@ export const AppProvider = ({ children }) => {
     };
   }, [isAuthenticated, token, currentUser?.id, refreshData]);
 
-  // ══════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // Profile
-  // ══════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   const updateProfile = async (updates) => {
     if (authUpdateProfile) {
       return await authUpdateProfile(updates);
     }
   };
 
-  // ══════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // Projects CRUD
-  // ══════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   const addProject = async (projectData) => {
     try {
       const res = await apiFetch('/projects', {
@@ -325,9 +348,9 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ══════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // Tasks CRUD
-  // ══════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   const addTask = async (projectId, taskData) => {
     try {
       const res = await apiFetch('/tasks', {
@@ -386,9 +409,9 @@ export const AppProvider = ({ children }) => {
     await editTask(taskId, { status: nextStatus });
   };
 
-  // ══════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // Activity Log (read-only from backend, no localStorage)
-  // ══════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   const logActivity = () => {
     // Activity logging is handled server-side now.
     // This is a no-op stub so existing UI calls don't break.
@@ -407,6 +430,68 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+
+  const refreshNetwork = async () => {
+    try {
+      const [networkRes, incomingRes, outgoingRes, suggestionsRes] = await Promise.all([
+        apiFetch('/network'),
+        apiFetch('/network/requests/incoming'),
+        apiFetch('/network/requests/outgoing'),
+        apiFetch('/network/suggestions'),
+      ]);
+      setNetworkConnections(networkRes.data?.connections || []);
+      setIncomingConnectionRequests(incomingRes.data || networkRes.data?.incoming || []);
+      setOutgoingConnectionRequests(outgoingRes.data || networkRes.data?.outgoing || []);
+      setNetworkSuggestions(suggestionsRes.data || []);
+      return {
+        connections: networkRes.data?.connections || [],
+        incoming: incomingRes.data || networkRes.data?.incoming || [],
+        outgoing: outgoingRes.data || networkRes.data?.outgoing || [],
+      };
+    } catch (err) {
+      console.error('Failed to refresh network:', err);
+      return { connections: [], incoming: [], outgoing: [] };
+    }
+  };
+  const discoverNetworkUsers = async (query) => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) return [];
+    try {
+      const res = await apiFetch(`/network/discover?query=${encodeURIComponent(trimmed)}`);
+      return res.data || [];
+    } catch (err) {
+      console.error('Failed to discover network users:', err);
+      return [];
+    }
+  };
+
+  const sendConnectionRequest = async (receiverId, message = '') => {
+    const res = await apiFetch('/network/request', {
+      method: 'POST',
+      body: JSON.stringify({ receiverId, message }),
+    });
+    await refreshNetwork();
+    return res.data;
+  };
+
+  const acceptConnectionRequest = async (requestId) => {
+    const res = await apiFetch(`/network/request/${requestId}/accept`, { method: 'POST' });
+    await refreshNetwork();
+    await refreshData();
+    return res.data;
+  };
+
+  const declineConnectionRequest = async (requestId) => {
+    const res = await apiFetch(`/network/request/${requestId}/decline`, { method: 'POST' });
+    await refreshNetwork();
+    return res.data;
+  };
+
+  const cancelConnectionRequest = async (requestId) => {
+    const res = await apiFetch(`/network/requests/${requestId}`, { method: 'DELETE' });
+    await refreshNetwork();
+    return res.data;
+  };
   const sendInvitation = async (projectId, receiverId) => {
     try {
       const res = await apiFetch('/invitations', {
@@ -515,7 +600,6 @@ export const AppProvider = ({ children }) => {
       return [];
     }
   };
-
   const scheduleProjectMeeting = async (projectId, meetingData) => {
     const res = await apiFetch(`/meetings/project/${projectId}/schedule`, {
       method: 'POST',
@@ -654,6 +738,10 @@ export const AppProvider = ({ children }) => {
             conversations,
       activeMeetings,
       meetings,
+      networkConnections,
+      incomingConnectionRequests,
+      outgoingConnectionRequests,
+      networkSuggestions,
       latestNotification,
       latestInvitation,
       latestMeetingEvent,
@@ -677,6 +765,12 @@ export const AppProvider = ({ children }) => {
       refreshData,
       apiFetch,
       searchUsersByEmail,
+      refreshNetwork,
+      discoverNetworkUsers,
+      sendConnectionRequest,
+      acceptConnectionRequest,
+      declineConnectionRequest,
+      cancelConnectionRequest,
       sendInvitation,
       acceptInvitation,
       rejectInvitation,
@@ -709,6 +803,17 @@ export const useApp = () => {
   }
   return context;
 };
+
+
+
+
+
+
+
+
+
+
+
 
 
 

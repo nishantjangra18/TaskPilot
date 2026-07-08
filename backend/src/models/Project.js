@@ -32,7 +32,40 @@ const projectSchema = new mongoose.Schema({
     enum: ['private', 'team', 'public'],
     default: 'private',
   },
-  owner: {
+  category: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  techStack: [{
+    type: String,
+    trim: true,
+  }],
+  timeline: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  goals: [{
+    type: String,
+    trim: true,
+  }],
+  milestones: [{
+    title: { type: String, trim: true },
+    description: { type: String, trim: true },
+    dueDate: { type: String, default: null },
+    phase: { type: String, trim: true },
+  }],
+  aiMetadata: {
+    generatedBy: { type: String, default: null },
+    riskAnalysis: [{
+      title: { type: String, trim: true },
+      level: { type: String, trim: true },
+      mitigation: { type: String, trim: true },
+    }],
+    estimatedHours: { type: Number, default: 0 },
+    createdFromAI: { type: Boolean, default: false },
+  },  owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,

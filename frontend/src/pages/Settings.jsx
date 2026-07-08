@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Bell, CalendarDays, Clock, LayoutGrid, Monitor, Palette, Settings as SettingsIcon, Sparkles, XCircle } from 'lucide-react';
 import { useTheme } from '../context/ThemeProvider';
 import { GoogleLabel } from '../components/GoogleBranding';
+import { TaskPilotSelect } from '../components/TaskPilotControls';
 import {
   buildGoogleAuthUrl,
   GOOGLE_EMAIL_KEY,
@@ -211,15 +212,13 @@ const SelectRow = ({ title, description, value, onChange, options, icon: Icon = 
         <span className="mt-0.5 block text-xs text-slate-400 dark:text-slate-500">{description}</span>
       </span>
     </div>
-    <select value={value} onChange={(e) => onChange(e.target.value)} className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-hidden transition-colors focus:border-violet-500 focus:ring-2 focus:ring-violet-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-violet-950">
-      {options.map(([optionValue, label]) => (
-        <option key={optionValue} value={optionValue}>{label}</option>
-      ))}
-    </select>
+    <TaskPilotSelect value={value} onChange={onChange} options={options} className="md:w-56" />
   </div>
 );
 
 export default Settings;
+
+
 
 
 

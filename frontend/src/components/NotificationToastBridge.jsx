@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+﻿import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'sonner';
@@ -260,14 +260,29 @@ const NotificationToastBridge = () => {
       return;
     }
 
-    const link = notification.metadata?.link || '/dashboard';
+    const isConnectionNotification = ['connection_request_received', 'connection_accepted', 'connection_declined'].includes(notification.type);
+    const link = isConnectionNotification ? '/network' : (notification.metadata?.link || '/dashboard');
+    const state = isConnectionNotification
+      ? {
+          networkTab: 'requests',
+          requestList: notification.metadata?.requestList || 'incoming',
+          connectionId: notification.metadata?.connectionId,
+        }
+      : notification.type === 'invitation_accepted' ? { openNotifications: true } : undefined;
+    const titleMap = {
+      invitation_accepted: 'Invitation accepted',
+      connection_request_received: 'Connection request',
+      connection_accepted: 'Connection accepted',
+      connection_declined: 'Connection declined',
+    };
+
     showToast({
       id: `notification-${notification._id || latestNotification.receivedAt}`,
-      title: notification.type === 'invitation_accepted' ? 'Invitation accepted' : 'Notification',
+      title: titleMap[notification.type] || 'Notification',
       senderName: 'TaskPilot',
       description: notification.message,
       link,
-      state: notification.type === 'invitation_accepted' ? { openNotifications: true } : undefined,
+      state,
       type: 'system',
     });
   }, [latestNotification, location.pathname]);
@@ -348,3 +363,4 @@ const NotificationToastBridge = () => {
 };
 
 export default NotificationToastBridge;
+

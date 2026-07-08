@@ -15,11 +15,28 @@ import TaskDetails from './pages/TaskDetails';
 import Profile from './pages/Profile';
 import SettingsPage from './pages/Settings';
 import Messages from './pages/Messages';
+import Network from './pages/Network';
 import CalendarPage from './pages/Calendar';
+import AIWorkspace from './pages/AIWorkspace';
+import AIProjectCreator from './pages/AIProjectCreator';
+import AIWorkloadBalancer from './pages/AIWorkloadBalancer';
+import AIProjectRiskPredictor from './pages/AIProjectRiskPredictor';
 import GoogleOAuthCallback from './pages/GoogleOAuthCallback';
 import ErrorBoundary from './components/ErrorBoundary';
 import PageTransition from './components/PageTransition';
 import NotificationToastBridge from './components/NotificationToastBridge';
+
+function ProtectedPage({ children, transition = false }) {
+  return (
+    <ProtectedRoute>
+      <Layout>
+        <ErrorBoundary>
+          {transition ? <PageTransition>{children}</PageTransition> : children}
+        </ErrorBoundary>
+      </Layout>
+    </ProtectedRoute>
+  );
+}
 
 function App() {
   return (
@@ -28,123 +45,25 @@ function App() {
         <AppProvider>
           <Router>
             <Routes>
-              {/* Public SaaS Landing & Auth Routes */}
               <Route path="/" element={<PageTransition><Landing /></PageTransition>} />
               <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
               <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
               <Route path="/auth/google/callback" element={<GoogleOAuthCallback />} />
 
-              {/* Protected Main SaaS Routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ErrorBoundary>
-                        <PageTransition>
-                          <Dashboard />
-                        </PageTransition>
-                      </ErrorBoundary>
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/projects"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ErrorBoundary>
-                        <Projects />
-                      </ErrorBoundary>
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-                            <Route
-                path="/projects/:projectId/meeting"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ErrorBoundary>
-                        <ProjectMeeting />
-                      </ErrorBoundary>
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/projects/:id"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ErrorBoundary>
-                        <ProjectDetails />
-                      </ErrorBoundary>
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/projects/:projectId/tasks/:taskId"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ErrorBoundary>
-                        <TaskDetails />
-                      </ErrorBoundary>
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/messages"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ErrorBoundary>
-                        <Messages />
-                      </ErrorBoundary>
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/calendar"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ErrorBoundary>
-                        <CalendarPage />
-                      </ErrorBoundary>
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ErrorBoundary>
-                        <Profile />
-                      </ErrorBoundary>
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ErrorBoundary>
-                        <SettingsPage />
-                      </ErrorBoundary>
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/dashboard" element={<ProtectedPage transition><Dashboard /></ProtectedPage>} />
+              <Route path="/projects" element={<ProtectedPage><Projects /></ProtectedPage>} />
+              <Route path="/projects/:projectId/meeting" element={<ProtectedPage><ProjectMeeting /></ProtectedPage>} />
+              <Route path="/projects/:id" element={<ProtectedPage><ProjectDetails /></ProtectedPage>} />
+              <Route path="/projects/:projectId/tasks/:taskId" element={<ProtectedPage><TaskDetails /></ProtectedPage>} />
+              <Route path="/messages" element={<ProtectedPage><Messages /></ProtectedPage>} />
+              <Route path="/network" element={<ProtectedPage><Network /></ProtectedPage>} />
+              <Route path="/ai" element={<ProtectedPage><AIWorkspace /></ProtectedPage>} />
+              <Route path="/ai-project-creator" element={<ProtectedPage><AIProjectCreator /></ProtectedPage>} />
+              <Route path="/ai-workload-balancer" element={<ProtectedPage><AIWorkloadBalancer /></ProtectedPage>} />
+              <Route path="/ai-risk-predictor" element={<ProtectedPage><AIProjectRiskPredictor /></ProtectedPage>} />
+              <Route path="/calendar" element={<ProtectedPage><CalendarPage /></ProtectedPage>} />
+              <Route path="/profile" element={<ProtectedPage><Profile /></ProtectedPage>} />
+              <Route path="/settings" element={<ProtectedPage><SettingsPage /></ProtectedPage>} />
             </Routes>
             <NotificationToastBridge />
           </Router>
@@ -155,7 +74,6 @@ function App() {
 }
 
 export default App;
-
 
 
 

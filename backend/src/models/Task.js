@@ -119,7 +119,35 @@ const taskSchema = new mongoose.Schema({
   dueTime: {
     type: String, // Kept as String matching frontend format 'HH:MM'
   },
-  attachments: [attachmentSchema],
+  milestone: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  phase: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  epic: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  estimatedHours: {
+    type: Number,
+    default: 0,
+  },
+  dependencies: [{
+    type: String,
+    trim: true,
+  }],
+  subtasks: [{
+    title: { type: String, trim: true },
+    description: { type: String, trim: true },
+    status: { type: String, enum: ['todo', 'in_progress', 'review', 'done'], default: 'todo' },
+    estimatedHours: { type: Number, default: 0 },
+  }],  attachments: [attachmentSchema],
   comments: [commentSchema],
   createdAt: {
     type: Date,

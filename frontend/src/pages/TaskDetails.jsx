@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import Avatar from '../components/Avatar';
 import { getProjectTheme } from '../utils/projectTheme';
+import { getTaskDependencyView, getTaskId, mergeDependency } from '../services/smartDependencyManager';
 import {
   ChevronRight,
   ArrowLeft,
@@ -29,7 +30,8 @@ import {
   Bug,
   Wrench,
   Search,
-  ClipboardList
+  ClipboardList,
+  GitBranch
 } from 'lucide-react';
 
 const TaskDetails = () => {
@@ -70,6 +72,7 @@ const TaskDetails = () => {
   
   // Quick status state
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
+  const [ignoredDependencySuggestions, setIgnoredDependencySuggestions] = useState([]);
 
   // File input ref for real uploads
   const fileInputRef = React.useRef(null);
@@ -95,7 +98,14 @@ const TaskDetails = () => {
       )
       .slice(0, 15);
   }, [activityLogs, project, task, editTitleValue]);
-
+  const projectTasks = useMemo(() => {
+    if (!project) return [];
+    const activeProjectId = project._id || project.id;
+    return tasks.filter(item => String(item.projectId?._id || item.projectId) === String(activeProjectId));
+  }, [tasks, project]);
+  const dependencyView = useMemo(() => getTaskDependencyView(task, projectTasks), [task, projectTasks]);
+  const visibleDependencySuggestions = dependencyView.suggestions.filter(suggestion => !ignoredDependencySuggestions.includes(getTaskId(suggestion.task)));
+  const incompleteDependencies = dependencyView.blockedBy.filter(item => item.status !== 'done');
   if (dataLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-slate-400 dark:text-slate-500 animate-pulse">
@@ -153,6 +163,11 @@ const TaskDetails = () => {
       alert("Permission Denied: Only project owners or the assignee can modify status.");
       return;
     }
+    if (nextStatus === 'done' && task.status !== 'done' && incompleteDependencies.length) {
+      const names = incompleteDependencies.map(item => item.title).join('\\n');
+      const proceed = window.confirm('This task depends on:\\n\\n' + names + '\\n\\nContinue anyway?');
+      if (!proceed) return;
+    }
     const oldStatus = task.status;
     const tId = task._id || task.id;
     editTask(tId, { status: nextStatus, updatedAt: new Date().toISOString() });
@@ -161,7 +176,7 @@ const TaskDetails = () => {
     logActivity(
       project._id || project.id, 
       currentUser.id, 
-      `changed status of "${task.title}" from ${statusLabels[oldStatus] || oldStatus} → ${statusLabels[nextStatus] || nextStatus}`
+      `changed status of "${task.title}" from ${statusLabels[oldStatus] || oldStatus} â†’ ${statusLabels[nextStatus] || nextStatus}`
     );
   };
 
@@ -255,6 +270,17 @@ const TaskDetails = () => {
     editTask(tId, { title: editTitleValue, updatedAt: new Date().toISOString() });
     logActivity(project._id || project.id, currentUser.id, `renamed task "${oldTitle}" to "${editTitleValue}"`);
     setIsEditingTitle(false);
+  };
+
+  const acceptDependencySuggestion = async (dependencyTask) => {
+    if (!isCurrentOwner) return;
+    const tId = task._id || task.id;
+    await editTask(tId, { dependencies: mergeDependency(task, dependencyTask), updatedAt: new Date().toISOString() });
+    setIgnoredDependencySuggestions(prev => prev.filter(id => id !== getTaskId(dependencyTask)));
+  };
+
+  const ignoreDependencySuggestion = (dependencyTask) => {
+    setIgnoredDependencySuggestions(prev => [...new Set([...prev, getTaskId(dependencyTask)])]);
   };
 
   // Handler: Add Comment
@@ -780,6 +806,17 @@ const TaskDetails = () => {
             )}
           </div>
 
+          <DependenciesSection
+            blockedBy={dependencyView.blockedBy}
+            blocks={dependencyView.blocks}
+            suggestions={visibleDependencySuggestions}
+            users={users}
+            isCurrentOwner={isCurrentOwner}
+            onOpenTask={(nextTaskId) => navigate('/projects/' + (project._id || project.id) + '/tasks/' + nextTaskId)}
+            onAccept={acceptDependencySuggestion}
+            onIgnore={ignoreDependencySuggestion}
+          />
+
           {/* COMMENTS SECTION */}
           <div className="bg-white dark:bg-slate-900 p-5 md:p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-2xs transition-colors text-left space-y-4">
             <div className="flex justify-between items-center pb-2 border-b border-slate-50 dark:border-slate-800/80">
@@ -872,7 +909,7 @@ const TaskDetails = () => {
                                 >
                                   Edit
                                 </button>
-                                <span className="text-slate-300 dark:text-slate-700">•</span>
+                                <span className="text-slate-300 dark:text-slate-700">â€¢</span>
                                 <button
                                   onClick={() => handleDeleteComment(commentId)}
                                   className="text-[10px] font-bold text-rose-500 hover:text-rose-600 bg-transparent border-0 cursor-pointer"
@@ -1009,7 +1046,7 @@ const TaskDetails = () => {
                               {attName}
                             </span>
                             <span className="text-[10px] text-slate-400 block mt-0.5">
-                              {attSize} • {formattedDate}
+                              {attSize} â€¢ {formattedDate}
                             </span>
                           </div>
                         </div>
@@ -1159,7 +1196,86 @@ const TaskDetails = () => {
   );
 };
 
+const dependencyStatusClass = status => status === 'done'
+  ? 'border-emerald-100 bg-emerald-50 text-emerald-600 dark:border-emerald-900/40 dark:bg-emerald-950/25 dark:text-emerald-300'
+  : status === 'in_progress'
+    ? 'border-violet-100 bg-violet-50 text-violet-600 dark:border-violet-900/40 dark:bg-violet-950/25 dark:text-violet-300'
+    : status === 'review'
+      ? 'border-amber-100 bg-amber-50 text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-300'
+      : 'border-slate-200 bg-slate-100 text-slate-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300';
+
+const DependenciesSection = ({ blockedBy, blocks, suggestions, users, isCurrentOwner, onOpenTask, onAccept, onIgnore }) => (
+  <div className="bg-white dark:bg-slate-900 p-5 md:p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-2xs transition-colors text-left space-y-5">
+    <div className="flex items-center justify-between border-b border-slate-50 pb-2 dark:border-slate-800/80">
+      <h3 className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
+        <GitBranch className="h-4 w-4" />
+        <span>Dependencies</span>
+      </h3>
+      <span className="rounded-full bg-violet-50 px-2.5 py-1 text-[9px] font-black uppercase text-violet-600 dark:bg-violet-950/25 dark:text-violet-300">AI Assisted</span>
+    </div>
+
+    <div className="grid gap-4 md:grid-cols-2">
+      <DependencyColumn title="Blocked By" tasks={blockedBy} users={users} empty="No required dependencies." onOpenTask={onOpenTask} />
+      <DependencyColumn title="Blocks" tasks={blocks} users={users} empty="This task is not blocking other tasks." onOpenTask={onOpenTask} />
+    </div>
+
+    <div className="rounded-2xl border border-dashed border-slate-200 p-4 dark:border-slate-800">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <h4 className="text-xs font-black text-slate-900 dark:text-white">Suggested Dependencies</h4>
+          <p className="mt-1 text-[11px] font-semibold text-slate-400">Detected from task title, description, priority, milestone, assignee, hours, and existing project tasks.</p>
+        </div>
+        <span className="shrink-0 text-[10px] font-black uppercase text-slate-400">{suggestions.length} found</span>
+      </div>
+      {suggestions.length ? <div className="space-y-2">
+        {suggestions.map(suggestion => <div key={getTaskId(suggestion.task)} className="rounded-xl border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-950/40">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-black text-slate-900 dark:text-white">{suggestion.task.title}</p>
+              <p className="mt-1 text-[11px] font-semibold leading-relaxed text-slate-400">Reason: {suggestion.reason}</p>
+            </div>
+            {isCurrentOwner && <div className="flex shrink-0 gap-2">
+              <button type="button" onClick={() => onAccept(suggestion.task)} className="rounded-lg bg-violet-600 px-3 py-1.5 text-[10px] font-black text-white">Accept</button>
+              <button type="button" onClick={() => onIgnore(suggestion.task)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-black text-slate-500 dark:border-slate-800 dark:text-slate-400">Ignore</button>
+            </div>}
+          </div>
+        </div>)}
+      </div> : <p className="py-4 text-center text-xs font-semibold text-slate-400">No AI dependency suggestions right now.</p>}
+    </div>
+  </div>
+);
+
+const DependencyColumn = ({ title, tasks, users, empty, onOpenTask }) => (
+  <div className="space-y-2">
+    <div className="flex items-center justify-between">
+      <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400">{title}</h4>
+      <span className="text-[10px] font-black text-slate-400">{tasks.length}</span>
+    </div>
+    {tasks.length ? tasks.map(task => <DependencyTaskCard key={getTaskId(task)} task={task} users={users} onOpenTask={onOpenTask} />) : <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs font-semibold text-slate-400 dark:border-slate-800">{empty}</div>}
+  </div>
+);
+
+const DependencyTaskCard = ({ task, users, onOpenTask }) => {
+  const assigneeId = task.assignee?._id || task.assignee || task.assigneeId;
+  const assignee = typeof task.assignee === 'object' ? task.assignee : users.find(user => String(user._id || user.id) === String(assigneeId));
+  return <button type="button" onClick={() => onOpenTask(getTaskId(task))} className="w-full rounded-xl border border-slate-100 bg-slate-50/60 p-3 text-left transition hover:border-violet-200 hover:bg-violet-50/40 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:border-violet-900/60 dark:hover:bg-violet-950/10">
+    <div className="flex items-start justify-between gap-3">
+      <p className="line-clamp-2 text-xs font-black text-slate-900 dark:text-white">{task.title}</p>
+      <span className={`shrink-0 rounded-full border px-2 py-1 text-[9px] font-black uppercase ${dependencyStatusClass(task.status)}`}>{task.status || 'todo'}</span>
+    </div>
+    <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] font-bold text-slate-400">
+      <span className="rounded-lg border border-slate-200 px-2 py-1 dark:border-slate-800">{task.priority || 'medium'}</span>
+      <span>{assignee?.name || 'Unassigned'}</span>
+    </div>
+  </button>;
+};
 export default TaskDetails;
+
+
+
+
+
+
 
 
 

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import Avatar from './Avatar';
+import { TaskPilotDatePicker } from './TaskPilotControls';
 import { useNavigate } from 'react-router-dom';
 import {
   X,
@@ -15,10 +16,10 @@ import {
 } from 'lucide-react';
 import { getProjectIcon } from '../utils/iconHelper';
 
-// ── Icon Options ───────────────────────────────────────────────
+// â”€â”€ Icon Options â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const iconOptions = ['folder', 'rocket', 'laptop', 'smartphone', 'zap', 'target', 'barchart', 'gamepad', 'shoppingcart', 'palette', 'filetext', 'microscope', 'construction', 'globe', 'package', 'testtube', 'graduationcap', 'megaphone', 'sparkles', 'shield'];
 
-// ── Color Themes ───────────────────────────────────────────────
+// â”€â”€ Color Themes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const colorThemes = [
   { value: '#3b82f6', name: 'Blue', bg: 'bg-blue-500', light: 'bg-blue-50 dark:bg-blue-950/30' },
   { value: '#8b5cf6', name: 'Purple', bg: 'bg-violet-500', light: 'bg-violet-50 dark:bg-violet-950/30' },
@@ -30,7 +31,7 @@ const colorThemes = [
   { value: '#06b6d4', name: 'Cyan', bg: 'bg-cyan-500', light: 'bg-cyan-50 dark:bg-cyan-950/30' },
 ];
 
-// ── Priority Options ───────────────────────────────────────────
+// â”€â”€ Priority Options â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const priorities = [
   { id: 'low', label: 'Low', dot: 'bg-slate-400', text: 'text-slate-500 dark:text-slate-400' },
   { id: 'medium', label: 'Medium', dot: 'bg-blue-500', text: 'text-blue-600 dark:text-blue-400' },
@@ -38,7 +39,7 @@ const priorities = [
   { id: 'critical', label: 'Critical', dot: 'bg-rose-500', text: 'text-rose-600 dark:text-rose-400' },
 ];
 
-// ── Visibility Options ─────────────────────────────────────────
+// â”€â”€ Visibility Options â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const visibilityOptions = [
   { id: 'private', label: 'Private', icon: Lock, desc: 'Only you can access' },
   { id: 'team', label: 'Team', icon: UsersIcon, desc: 'All team members' },
@@ -46,12 +47,12 @@ const visibilityOptions = [
 ];
 
 const CreateProjectModal = ({ isOpen, onClose }) => {
-  const { addProject, users, currentUser } = useApp();
+  const { addProject, currentUser, networkConnections = [] } = useApp();
   const navigate = useNavigate();
   const nameInputRef = useRef(null);
   const modalRef = useRef(null);
 
-  // ── Form State ─────────────────────────────────────────────
+  // â”€â”€ Form State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const [icon, setIcon] = useState('folder');
   const [name, setName] = useState('');
@@ -66,7 +67,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [nameTouched, setNameTouched] = useState(false);
 
-  // ── Validation ─────────────────────────────────────────────
+  // â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const nameError = nameTouched
     ? name.trim().length === 0
       ? 'Project name is required'
@@ -79,8 +80,9 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
 
 
 
-  // ── Member filtering ───────────────────────────────────────
-  const availableMembers = users.filter(u => {
+  // â”€â”€ Member filtering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const projectMemberSource = networkConnections;
+  const availableMembers = projectMemberSource.filter(u => {
     const query = memberSearch.trim().toLowerCase();
     if (query.length < 3) return false;
 
@@ -98,7 +100,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
     setMemberSearch('');
   };
 
-  // ── Submit ─────────────────────────────────────────────────
+  // â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleSubmit = async (e) => {
     e?.preventDefault();
     if (!isValid || isSubmitting) return;
@@ -136,7 +138,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
     setShowIconPicker(false);
   };
 
-  // ── Keyboard / Focus ──────────────────────────────────────
+  // â”€â”€ Keyboard / Focus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Escape') onClose();
   }, [onClose]);
@@ -149,7 +151,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
     }
   }, [isOpen, handleKeyDown]);
 
-  // ── Click outside ──────────────────────────────────────────
+  // â”€â”€ Click outside â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleBackdropClick = (e) => {
     if (modalRef.current && !modalRef.current.contains(e.target)) onClose();
   };
@@ -165,7 +167,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
         ref={modalRef}
         className="bg-[#ffffff] dark:bg-slate-900 rounded-2xl w-full max-w-[660px] max-h-[92vh] shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 flex flex-col overflow-hidden"
       >
-        {/* ═══ Header ═══ */}
+        {/* â•â•â• Header â•â•â• */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 rounded-lg">
@@ -181,10 +183,10 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* ═══ Body ═══ */}
+        {/* â•â•â• Body â•â•â• */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
 
-          {/* ── Project Icon + Name ── */}
+          {/* â”€â”€ Project Icon + Name â”€â”€ */}
           <div>
             <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
               Project Name <span className="text-rose-500">*</span>
@@ -244,7 +246,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          {/* ── Description ── */}
+          {/* â”€â”€ Description â”€â”€ */}
           <div>
             <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
               Description
@@ -263,7 +265,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* ── Priority + Deadline (side by side) ── */}
+          {/* â”€â”€ Priority + Deadline (side by side) â”€â”€ */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Priority */}
             <div>
@@ -295,12 +297,10 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
-                <input
-                  type="date"
+                <TaskPilotDatePicker
                   value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
+                  onChange={setDeadline}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium focus:outline-hidden focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-950 focus:border-blue-500 bg-[#ffffff] dark:bg-slate-950 text-slate-700 dark:text-slate-300 transition-all"
                 />
               </div>
               {!deadline && (
@@ -309,7 +309,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* ── Team Members ── */}
+          {/* â”€â”€ Team Members â”€â”€ */}
           <div>
             <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
               Assign Team Members
@@ -319,7 +319,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
             {selectedMembers.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-2.5">
                 {selectedMembers.map(mId => {
-                  const member = users.find(u => (u._id || u.id) === mId);
+                  const member = projectMemberSource.find(u => (u._id || u.id) === mId);
                   if (!member) return null;
                   return (
                     <span
@@ -346,7 +346,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
               <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search team members..."
+                placeholder="Search accepted connections..."
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium focus:outline-hidden focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-950 focus:border-blue-500 bg-[#ffffff] dark:bg-slate-950 text-slate-700 dark:text-slate-300 placeholder-slate-400 transition-all"
@@ -379,7 +379,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          {/* ── Color Theme ── */}
+          {/* â”€â”€ Color Theme â”€â”€ */}
           <div>
             <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2.5">
               Project Theme
@@ -403,7 +403,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* ── Visibility ── */}
+          {/* â”€â”€ Visibility â”€â”€ */}
           <div>
             <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2.5">
               Visibility
@@ -435,7 +435,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* ═══ Footer ═══ */}
+        {/* â•â•â• Footer â•â•â• */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-950/40 shrink-0">
           <button
             type="button"
@@ -471,6 +471,11 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
 };
 
 export default CreateProjectModal;
+
+
+
+
+
 
 
 

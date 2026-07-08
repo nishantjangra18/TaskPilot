@@ -1,10 +1,11 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const Project = require('../models/Project');
 const User = require('../models/User');
 const Invitation = require('../models/Invitation');
 const { createAndEmitNotification, findMentionedUsers, normalizeId } = require('../utils/realtimeNotifications');
+const { areAcceptedConnections } = require('../utils/networkAccess');
 
 const getUserId = (req) => req.user.id.toString();
 
@@ -162,6 +163,11 @@ exports.createDirectChat = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
+    const isConnected = await areAcceptedConnections(userId, participantId);
+    if (!isConnected) {
+      return res.status(403).json({ success: false, message: 'You can only message accepted connections' });
+    }
+
     let conversation = await Conversation.findOne({
       type: 'direct',
       participants: { $all: [userId, participantId], $size: 2 },
@@ -243,6 +249,14 @@ exports.sendMessage = async (req, res) => {
       return res.status(access.status).json({ success: false, message: access.message });
     }
 
+    if (access.conversation.type === 'direct') {
+      const recipientId = access.conversation.participants.map(participant => participant.toString()).find(participant => participant !== userId);
+      const isConnected = await areAcceptedConnections(userId, recipientId);
+      if (!isConnected) {
+        return res.status(403).json({ success: false, message: 'You can only message accepted connections' });
+      }
+    }
+
     const message = await Message.create({
       conversationId: access.conversation._id,
       senderId: userId,
@@ -278,4 +292,5 @@ exports.sendMessage = async (req, res) => {
 };
 
 exports.syncProjectConversation = syncProjectConversation;
+
 

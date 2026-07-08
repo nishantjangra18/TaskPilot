@@ -1,5 +1,20 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+
+const skillSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true, maxlength: 80 },
+  category: { type: String, required: true, trim: true, maxlength: 80 },
+  level: {
+    type: String,
+    enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+    default: 'Intermediate',
+  },
+  experience: {
+    type: String,
+    enum: ['', '0-1', '1-2', '2-4', '4-6', '6+'],
+    default: '',
+  },
+}, { _id: false });
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -17,6 +32,14 @@ const userSchema = new mongoose.Schema({
       /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,})+$/,
       'Please add a valid email address',
     ],
+  },
+  username: {
+    type: String,
+    trim: true,
+    lowercase: true,
+    sparse: true,
+    unique: true,
+    maxlength: 40,
   },
   password: {
     type: String,
@@ -44,10 +67,29 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  availability: {
+    type: String,
+    enum: ['available', 'busy', 'dnd', 'offline'],
+    default: 'available',
+  },
   theme: {
     type: String,
     enum: ['light', 'dark'],
     default: 'light',
+  },
+  skills: {
+    type: [skillSchema],
+    default: [],
+    validate: {
+      validator: skills => skills.length <= 50,
+      message: 'A profile can include up to 50 skills',
+    },
+  },
+  capacity: {
+    type: Number,
+    min: 0,
+    max: 80,
+    default: 40,
   },
   lastLogin: {
     type: Date,
@@ -80,3 +122,4 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 module.exports = mongoose.model('User', userSchema);
+

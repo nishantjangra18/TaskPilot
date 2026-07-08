@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
@@ -58,6 +58,8 @@ app.use('/api/invitations', require('./routes/invitationRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/meetings', require('./routes/meetingRoutes'));
 app.use('/api/chats', require('./routes/chatRoutes'));
+app.use('/api/network', require('./routes/networkRoutes'));
+app.use('/api/ai', require('./routes/aiRoutes'));
 
 // Expose static uploads folder
 const path = require('path');
@@ -80,3 +82,4 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
+

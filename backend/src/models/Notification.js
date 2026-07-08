@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
   userId: {
@@ -8,7 +8,7 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['invitation_received', 'invitation_accepted', 'invitation_rejected', 'meeting_started', 'meeting_scheduled', 'meeting_updated', 'meeting_cancelled', 'meeting_ended', 'task_assigned', 'task_status_changed', 'user_mentioned'],
+    enum: ['invitation_received', 'invitation_accepted', 'invitation_rejected', 'connection_request_received', 'connection_accepted', 'connection_declined', 'meeting_started', 'meeting_scheduled', 'meeting_updated', 'meeting_cancelled', 'meeting_ended', 'task_assigned', 'task_status_changed', 'user_mentioned'],
     required: true,
   },
   message: {
@@ -30,5 +30,6 @@ const notificationSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Notification', notificationSchema);
+
 
 

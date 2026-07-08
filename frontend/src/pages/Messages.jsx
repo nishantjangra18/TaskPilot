@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CalendarDays, Check, ChevronDown, CircleStop, Hash, MessageSquare, Mic, MicOff, Phone, PhoneOff, Search, Send, Users, UserPlus, Video, Volume2, VolumeX, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import Avatar from '../components/Avatar';
+import { TaskPilotDatePicker, TaskPilotSelect, TaskPilotTimePicker } from '../components/TaskPilotControls';
 import { getProjectIcon } from '../utils/iconHelper';
 import { toast } from 'sonner';
 
@@ -11,7 +12,7 @@ const blankMeetingForm = (participants = []) => ({ title: '', description: '', d
 
 const Messages = () => {
   const {
-    currentUser, users, projects, conversations, activeMeetings, latestChatMessage,
+    currentUser, users, projects, conversations, activeMeetings, latestChatMessage, networkConnections = [],
     setActiveMessageConversationId, refreshChats, startDirectChat, getProjectChat,
     getChatMessages, sendChatMessage, startProjectMeeting, scheduleProjectMeeting,
   } = useApp();
@@ -77,14 +78,14 @@ const Messages = () => {
   const availableUsers = useMemo(() => {
     const query = userSearch.trim().toLowerCase();
     if (query.length < 5 || !query.includes('@')) return [];
-    return users
+    return networkConnections
       .filter(user => (user._id || user.id) !== currentUser?.id)
       .filter(user => {
         const email = user.email?.toLowerCase() || '';
         return email === query || email.startsWith(query);
       })
       .slice(0, 3);
-  }, [users, currentUser, userSearch]);
+  }, [networkConnections, currentUser, userSearch]);
   const canShowUserSearch = userSearch.trim().length >= 5 && userSearch.includes('@');
 
   const formatTime = (dateValue) => dateValue ? new Date(dateValue).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
@@ -351,7 +352,7 @@ const Messages = () => {
           <div className="p-4 space-y-5 overflow-y-auto flex-1 min-h-0">
             <section>
               <div className="flex items-center gap-2 px-1 mb-2"><MessageSquare className="h-3.5 w-3.5 text-violet-500" /><span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Direct Messages</span></div>
-              <div className="space-y-1">{directConversations.length > 0 ? directConversations.map(renderConversationRow) : <div className="px-3 py-6 text-center text-xs text-slate-400 dark:text-slate-500 border border-dashed border-slate-100 dark:border-slate-800 rounded-xl">Start a private chat by searching for a user.</div>}</div>
+              <div className="space-y-1">{directConversations.length > 0 ? directConversations.map(renderConversationRow) : <div className="px-3 py-6 text-center text-xs text-slate-400 dark:text-slate-500 border border-dashed border-slate-100 dark:border-slate-800 rounded-xl">Start a private chat by searching an accepted connection.</div>}</div>
             </section>
             <section>
               <div className="flex items-center gap-2 px-1 mb-2"><Hash className="h-3.5 w-3.5 text-violet-500" /><span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Project Channels</span></div>
@@ -477,8 +478,8 @@ const Messages = () => {
               <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 text-left">
                 <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Meeting Title</label><input type="text" required value={meetingForm.title} onChange={(event) => setMeetingForm(prev => ({ ...prev, title: event.target.value }))} className="w-full px-3.5 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-hidden focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 text-slate-800 dark:text-slate-100 bg-slate-50/50 dark:bg-slate-950 transition-all" placeholder="e.g. Sprint planning" /></div>
                 <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Description</label><textarea value={meetingForm.description} onChange={(event) => setMeetingForm(prev => ({ ...prev, description: event.target.value }))} className="w-full px-3.5 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-hidden focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 text-slate-800 dark:text-slate-100 bg-slate-50/50 dark:bg-slate-950 h-20 resize-none transition-all" placeholder="Agenda, goals, or notes for participants" /></div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4"><div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Date</label><input type="date" required value={meetingForm.date} onChange={(event) => setMeetingForm(prev => ({ ...prev, date: event.target.value }))} className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-violet-500/20" /></div><div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Start Time</label><input type="time" required value={meetingForm.startTime} onChange={(event) => setMeetingForm(prev => ({ ...prev, startTime: event.target.value }))} className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-violet-500/20" /></div><div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">End Time</label><input type="time" required value={meetingForm.endTime} onChange={(event) => setMeetingForm(prev => ({ ...prev, endTime: event.target.value }))} className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-violet-500/20" /></div></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Meeting Type</label><select value={meetingForm.meetingType} onChange={(event) => setMeetingForm(prev => ({ ...prev, meetingType: event.target.value }))} className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-hidden"><option value="video">Video</option><option value="audio">Audio</option><option value="planning">Planning</option><option value="review">Review</option><option value="standup">Standup</option><option value="other">Other</option></select></div><div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Recurrence</label><select value={meetingForm.recurrence} onChange={(event) => setMeetingForm(prev => ({ ...prev, recurrence: event.target.value }))} className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-hidden"><option value="none">None</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4"><div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Date</label><TaskPilotDatePicker required value={meetingForm.date} onChange={(date) => setMeetingForm(prev => ({ ...prev, date }))} /></div><div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Start Time</label><TaskPilotTimePicker required value={meetingForm.startTime} onChange={(startTime) => setMeetingForm(prev => ({ ...prev, startTime }))} /></div><div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">End Time</label><TaskPilotTimePicker required value={meetingForm.endTime} onChange={(endTime) => setMeetingForm(prev => ({ ...prev, endTime }))} /></div></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Meeting Type</label><TaskPilotSelect value={meetingForm.meetingType} onChange={(meetingType) => setMeetingForm(prev => ({ ...prev, meetingType }))} options={[["video", "Video"], ["audio", "Audio"], ["planning", "Planning"], ["review", "Review"], ["standup", "Standup"], ["other", "Other"]]} /></div><div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Recurrence</label><TaskPilotSelect value={meetingForm.recurrence} onChange={(recurrence) => setMeetingForm(prev => ({ ...prev, recurrence }))} options={[["none", "None"], ["daily", "Daily"], ["weekly", "Weekly"], ["monthly", "Monthly"]]} /></div></div>
                 <div><div className="flex items-center justify-between mb-2"><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Participants</label><span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Project members only</span></div><div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">{projectParticipants.map(user => { const userId = user._id || user.id; const selected = meetingForm.participants.includes(userId); return <button key={userId} type="button" onClick={() => toggleMeetingParticipant(userId)} className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition-all ${selected ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}><span className="flex items-center gap-2 min-w-0"><Avatar name={user.name} avatar={user.avatar} className="h-7 w-7 text-[9px] border border-slate-200 dark:border-slate-800" /><span className="min-w-0"><span className="block text-xs font-bold truncate">{user.name}</span><span className="block text-[10px] opacity-70 truncate">{user.email}</span></span></span>{selected && <Check className="h-4 w-4 shrink-0" />}</button>; })}{projectParticipants.length === 0 && <div className="sm:col-span-2 py-6 text-center text-xs text-slate-400 dark:text-slate-500 border border-dashed border-slate-100 dark:border-slate-800 rounded-xl">No project members found.</div>}</div></div>
               </div>
               <div className="shrink-0 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/80 rounded-b-2xl flex justify-end space-x-3"><button type="button" onClick={() => { setShowScheduleModal(false); resetMeetingForm(); }} className="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">Cancel</button><button type="submit" disabled={!meetingForm.title.trim() || scheduleSaving} className={`px-5 py-2.5 rounded-xl text-xs font-bold shadow-xs active:scale-97 text-white cursor-pointer ${meetingForm.title.trim() && !scheduleSaving ? 'bg-violet-600 hover:bg-violet-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed border border-transparent'}`}>{scheduleSaving ? 'Saving...' : 'Schedule Meeting'}</button></div>
@@ -497,5 +498,8 @@ const Messages = () => {
 };
 
 export default Messages;
+
+
+
 
 

@@ -1,7 +1,8 @@
-const Task = require('../models/Task');
+﻿const Task = require('../models/Task');
 const Project = require('../models/Project');
 const ActivityLog = require('../models/ActivityLog');
 const { createAndEmitNotification, findMentionedUsers, normalizeId, uniqueIds } = require('../utils/realtimeNotifications');
+const { areAcceptedConnections } = require('../utils/networkAccess');
 
 const statusLabels = { todo: 'To Do', in_progress: 'In Progress', review: 'Review', done: 'Done' };
 
@@ -26,6 +27,23 @@ const notifyTaskEvent = async (req, userId, type, message, task, project) => {
   });
 };
 
+const validateTaskAssignee = async (actorId, assigneeId, project) => {
+  if (!assigneeId) return { allowed: true };
+
+  const projectUserIds = getProjectUserIds(project);
+  if (!projectUserIds.includes(assigneeId.toString())) {
+    return { allowed: false, message: 'Task assignee must be a project member' };
+  }
+
+  if (assigneeId.toString() === actorId.toString()) {
+    return { allowed: true };
+  }
+
+  const isConnected = await areAcceptedConnections(actorId, assigneeId);
+  return isConnected
+    ? { allowed: true }
+    : { allowed: false, message: 'Task assignee must be an accepted connection' };
+};
 // Helper to check user permission to access a project
 const checkProjectAccess = async (projectId, userId) => {
   const project = await Project.findById(projectId);
@@ -54,6 +72,11 @@ exports.createTask = async (req, res) => {
     const access = await checkProjectAccess(projectId, req.user.id);
     if (!access.allowed) {
       return res.status(access.status).json({ success: false, message: access.message });
+    }
+
+    const assigneeValidation = await validateTaskAssignee(req.user.id, assignee, access.project);
+    if (!assigneeValidation.allowed) {
+      return res.status(403).json({ success: false, message: assigneeValidation.message });
     }
 
     const task = await Task.create({
@@ -164,6 +187,13 @@ exports.updateTask = async (req, res) => {
 
     const previousStatus = task.status;
     const previousAssigneeId = normalizeId(task.assignee);
+
+    if (req.body.assignee !== undefined) {
+      const assigneeValidation = await validateTaskAssignee(req.user.id, req.body.assignee, access.project);
+      if (!assigneeValidation.allowed) {
+        return res.status(403).json({ success: false, message: assigneeValidation.message });
+      }
+    }
 
     let logMsg = `updated task "${task.title}".`;
     if (req.body.status && req.body.status !== task.status) {
@@ -307,3 +337,4 @@ exports.addComment = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+

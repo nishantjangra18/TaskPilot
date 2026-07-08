@@ -1,10 +1,24 @@
-const Project = require('../models/Project');
+﻿const Project = require('../models/Project');
 const Task = require('../models/Task');
 const ActivityLog = require('../models/ActivityLog');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const { syncProjectConversation } = require('./chatController');
+const { areAcceptedConnections } = require('../utils/networkAccess');
 
+const validateConnectedMembers = async (ownerId, memberIds = []) => {
+  const uniqueMemberIds = [...new Set(memberIds.map(memberId => memberId.toString()))];
+  const externalMemberIds = uniqueMemberIds.filter(memberId => memberId !== ownerId.toString());
+
+  for (const memberId of externalMemberIds) {
+    const isConnected = await areAcceptedConnections(ownerId, memberId);
+    if (!isConnected) {
+      return { allowed: false, memberId };
+    }
+  }
+
+  return { allowed: true, memberIds: uniqueMemberIds };
+};
 // @desc    Create a project
 // @route   POST /api/projects
 // @access  Private
@@ -23,7 +37,12 @@ exports.createProject = async (req, res) => {
       projectMembers.push(req.user.id.toString());
     }
 
-    const uniqueMembers = [...new Set(projectMembers)];
+    const memberValidation = await validateConnectedMembers(req.user.id, projectMembers);
+    if (!memberValidation.allowed) {
+      return res.status(403).json({ success: false, message: 'Project members must be accepted connections' });
+    }
+
+    const uniqueMembers = memberValidation.memberIds;
 
     const project = await Project.create({
       name,
@@ -112,7 +131,11 @@ exports.updateProject = async (req, res) => {
     }
 
     if (req.body.members && Array.isArray(req.body.members)) {
-      req.body.members = [...new Set(req.body.members.map(m => m.toString()))];
+      const memberValidation = await validateConnectedMembers(req.user.id, req.body.members);
+      if (!memberValidation.allowed) {
+        return res.status(403).json({ success: false, message: 'Project members must be accepted connections' });
+      }
+      req.body.members = memberValidation.memberIds;
     }
 
     project = await Project.findByIdAndUpdate(req.params.id, req.body, {
@@ -193,3 +216,4 @@ exports.getActivityLogs = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+

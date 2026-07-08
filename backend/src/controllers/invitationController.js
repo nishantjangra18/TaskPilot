@@ -1,10 +1,11 @@
-const Invitation = require('../models/Invitation');
+﻿const Invitation = require('../models/Invitation');
 const Notification = require('../models/Notification');
 const Project = require('../models/Project');
 const User = require('../models/User');
 const ActivityLog = require('../models/ActivityLog');
 const Message = require('../models/Message');
 const { syncProjectConversation } = require('./chatController');
+const { areAcceptedConnections } = require('../utils/networkAccess');
 
 // @desc    Send a project invitation
 // @route   POST /api/invitations
@@ -39,6 +40,11 @@ exports.sendInvitation = async (req, res) => {
     const isMember = project.members.some(m => m.toString() === receiverId);
     if (isOwner || isMember) {
       return res.status(400).json({ success: false, message: 'User is already a member of this project' });
+    }
+
+    const isConnected = await areAcceptedConnections(req.user.id, receiverId);
+    if (!isConnected) {
+      return res.status(403).json({ success: false, message: 'You can only invite accepted connections to projects' });
     }
 
     // 5. Check if there's a pending invitation already
@@ -233,3 +239,4 @@ exports.rejectInvitation = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
