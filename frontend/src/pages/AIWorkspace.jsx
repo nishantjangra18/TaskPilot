@@ -210,6 +210,4 @@ const AIToolCard = ({ tool }) => {
 };
 
 export default AIWorkspace;
-
-
-
+

@@ -81,7 +81,6 @@ const emitNetworkUpdate = (req, userIds = []) => {
   });
 };
 
-
 const shapeIncomingRequest = connection => ({
   _id: connection._id,
   id: connection._id,
@@ -357,4 +356,4 @@ exports.getOutgoingConnectionRequests = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
+

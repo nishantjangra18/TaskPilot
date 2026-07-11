@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { getInitials, getAvatarColor } from '../utils/avatarHelper';
 
 const Avatar = ({ name, avatar, className = "h-8 w-8 text-[11px]" }) => {

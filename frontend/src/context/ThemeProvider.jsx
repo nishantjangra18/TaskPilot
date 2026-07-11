@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
 const ThemeContext = createContext();
@@ -8,16 +8,13 @@ export const ThemeProvider = ({ children }) => {
 
   // State to hold the current theme ('light' or 'dark')
   const [theme, setTheme] = useState(() => {
-    // 1. If we have a user with a saved theme in the context, use it
     if (user?.theme) {
       return user.theme;
     }
-    // 2. Otherwise try local storage
     const saved = localStorage.getItem('theme');
     if (saved === 'light' || saved === 'dark') {
       return saved;
     }
-    // 3. Fallback to system preference
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     return prefersDark ? 'dark' : 'light';
   });
@@ -31,7 +28,6 @@ export const ThemeProvider = ({ children }) => {
       root.classList.remove('dark');
     }
     
-    // Save to local storage for guests or as a fallback
     localStorage.setItem('theme', theme);
   }, [theme]);
 

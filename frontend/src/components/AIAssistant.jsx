@@ -482,7 +482,7 @@ const AIAssistant = () => {
       await navigator.clipboard.writeText(code);
       setCopiedCodeId(codeId);
       window.setTimeout(() => setCopiedCodeId(''), 1600);
-    } catch (err) {
+    } catch {
       setError('Could not copy code to clipboard.');
     }
   };
@@ -506,7 +506,6 @@ const AIAssistant = () => {
       };
     }));
   };
-
 
   const sendMessage = async () => {
     const trimmed = input.trim();

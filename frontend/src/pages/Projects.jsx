@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import CreateProjectModal from '../components/CreateProjectModal';
@@ -11,7 +11,6 @@ import {
   Trash2, 
   Calendar,
   FolderOpen,
-  Users,
   AlertTriangle,
   CheckCircle2,
   Clock,
@@ -240,11 +239,6 @@ const Projects = () => {
             const health = getHealthStatus(stats);
             const HealthIcon = health.icon;
             const members = getProjectMembers(project);
-            const dateStr = new Date(project.createdAt).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
-            });
 
             return (
               <div

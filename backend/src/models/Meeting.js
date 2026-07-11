@@ -119,4 +119,4 @@ const meetingSchema = new mongoose.Schema({
 meetingSchema.index({ projectId: 1, status: 1 });
 
 module.exports = mongoose.model('Meeting', meetingSchema);
-
+

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'sonner';
@@ -151,7 +151,7 @@ const NotificationToastBridge = () => {
     };
   }, []);
 
-  const playSound = (kind) => {
+  function playSound(kind) {
     if (!audioUnlockedRef.current) {
       pendingSoundRef.current = kind;
       return;
@@ -164,7 +164,7 @@ const NotificationToastBridge = () => {
     audio.currentTime = 0;
     audio.volume = 0.7;
     audio.play().catch(() => {});
-  };
+  }
 
   const openToastTarget = (sonnerId, link, state) => {
     toast.dismiss(sonnerId);
@@ -363,4 +363,4 @@ const NotificationToastBridge = () => {
 };
 
 export default NotificationToastBridge;
-
+

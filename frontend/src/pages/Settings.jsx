@@ -217,9 +217,4 @@ const SelectRow = ({ title, description, value, onChange, options, icon: Icon = 
 );
 
 export default Settings;
-
-
-
-
-
-
+

@@ -41,7 +41,6 @@ const estimatedHours = task => {
 };
 const priorityWeight = priority => ({ critical: 1.8, high: 1.4, medium: 1, low: 0.65 }[priority] || 1);
 const skillWeight = proficiency => ({ expert: 4, advanced: 3, intermediate: 2, beginner: 1 }[norm(proficiency)] || 1);
-const statusLabel = status => ({ todo: 'To Do', in_progress: 'In Progress', review: 'Review', done: 'Done' }[status] || status || 'Open');
 const statusTone = status => {
   if (status === 'Overloaded') return 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-950/25 dark:text-rose-300 dark:border-rose-900/40';
   if (status === 'Busy') return 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-950/25 dark:text-amber-300 dark:border-amber-900/40';

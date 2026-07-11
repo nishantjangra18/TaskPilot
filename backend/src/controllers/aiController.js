@@ -455,13 +455,11 @@ exports.applyAIAction = async (req, res) => {
       await Promise.all(recipients.map(id => notifyTaskEvent(req, id, notificationType, notificationMessage, updatedTask, project)));
     }
 
-
     res.json({ success: true, message: 'AI action applied successfully', data: updatedTask });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message || 'Failed to apply AI action' });
   }
 };
-
 
 const PROJECT_CREATOR_CONTEXT_LIMIT = 120;
 

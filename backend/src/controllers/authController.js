@@ -3,7 +3,6 @@ const User = require('../models/User');
 const Project = require('../models/Project');
 const { verifyFirebaseIdToken } = require('../config/firebaseAdmin');
 
-// Generate JWT token helper
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: '30d',
@@ -80,9 +79,6 @@ const serializeUser = (user, includeToken = true) => ({
   ...(includeToken ? { token: generateToken(user._id) } : {}),
 });
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
 exports.register = async (req, res) => {
   try {
     const { name, email, password, avatar, title, theme } = req.body;
@@ -120,9 +116,6 @@ exports.register = async (req, res) => {
   }
 };
 
-// @desc    Authenticate a user
-// @route   POST /api/auth/login
-// @access  Public
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -145,9 +138,6 @@ exports.login = async (req, res) => {
   }
 };
 
-// @desc    Authenticate or create a user with Firebase Google Auth
-// @route   POST /api/auth/firebase-google
-// @access  Public
 exports.firebaseGoogleLogin = async (req, res) => {
   try {
     const { idToken } = req.body;
@@ -198,9 +188,6 @@ exports.firebaseGoogleLogin = async (req, res) => {
   }
 };
 
-// @desc    Get user profile
-// @route   GET /api/auth/profile
-// @access  Private
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -215,9 +202,6 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// @desc    Update user profile
-// @route   PUT /api/auth/profile
-// @access  Private
 exports.updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -246,9 +230,6 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// @desc    Get searchable workspace users
-// @route   GET /api/auth/users
-// @access  Private
 exports.getUsers = async (req, res) => {
   try {
     const { email } = req.query;
@@ -279,8 +260,4 @@ exports.getUsers = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-
-
-
-
+

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, ArrowLeft } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import Avatar from './Avatar';
 import { TaskPilotDatePicker } from './TaskPilotControls';
@@ -77,8 +77,6 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
     : null;
 
   const isValid = name.trim().length >= 3;
-
-
 
   // â”€â”€ Member filtering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const projectMemberSource = networkConnections;
@@ -471,12 +469,3 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
 };
 
 export default CreateProjectModal;
-
-
-
-
-
-
-
-
-

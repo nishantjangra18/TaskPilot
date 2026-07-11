@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CalendarDays, Check, ChevronDown, CircleStop, Hash, MessageSquare, Mic, MicOff, Phone, PhoneOff, Search, Send, Users, UserPlus, Video, Volume2, VolumeX, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -498,8 +498,4 @@ const Messages = () => {
 };
 
 export default Messages;
-
-
-
-
-
+

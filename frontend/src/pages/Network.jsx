@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo, useState } from 'react';
-import { Briefcase, Check, Clock, Mail, MessageSquare, Search, Send, Sparkles, UserCheck, UserRoundPlus, Users, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Briefcase, Check, Mail, MessageSquare, Search, Send, Sparkles, UserCheck, UserRoundPlus, Users, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '../components/Avatar';
 import { useApp } from '../context/AppContext';
@@ -448,8 +448,4 @@ const InvitePanel = ({ user, projects, busyAction, onInvite, onClose }) => (
 );
 
 export default Network;
-
-
-
-
-
+

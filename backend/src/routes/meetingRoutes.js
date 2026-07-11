@@ -30,7 +30,4 @@ router.post('/:id/leave', leaveMeeting);
 router.post('/:id/end', endMeeting);
 
 module.exports = router;
-
-
-
-
+

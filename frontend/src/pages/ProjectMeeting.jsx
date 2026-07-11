@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { AlertCircle, ChevronLeft, Mic, MicOff, PhoneOff, Users, Video, VideoOff } from 'lucide-react';
 import { MeetingProvider, useMeeting, useParticipant } from '@videosdk.live/react-sdk';
@@ -45,7 +45,7 @@ const ParticipantTile = ({ participantId }) => {
   );
 };
 
-const VideoSdkRoom = ({ meeting, currentUser, isHost, onLeave, onEnd }) => {
+const VideoSdkRoom = ({ isHost, onLeave, onEnd }) => {
   const [joined, setJoined] = useState(false);
   const [ending, setEnding] = useState(false);
   const { join, leave, toggleMic, toggleWebcam, participants, localMicOn, localWebcamOn } = useMeeting({
@@ -186,7 +186,7 @@ const ProjectMeeting = () => {
         if (isMounted) {
           setMeeting(res.data || null);
         }
-      } catch (err) {
+      } catch {
         if (isMounted) {
           setMeeting(null);
         }
@@ -339,7 +339,7 @@ const ProjectMeeting = () => {
             }}
             token={videoSdkToken}
           >
-            <VideoSdkRoom meeting={meeting} currentUser={currentUser} isHost={isHost} onLeave={handleLeaveMeeting} onEnd={handleEndMeeting} />
+            <VideoSdkRoom isHost={isHost} onLeave={handleLeaveMeeting} onEnd={handleEndMeeting} />
           </MeetingProvider>
         ) : (
           <div className="bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden min-h-0 relative">
@@ -393,7 +393,4 @@ const ProjectMeeting = () => {
 };
 
 export default ProjectMeeting;
-
-
-
-
+

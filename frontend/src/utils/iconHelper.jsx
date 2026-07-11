@@ -1,4 +1,4 @@
-import React from 'react';
+
 import {
   Folder,
   Rocket,
@@ -78,5 +78,4 @@ export const getProjectIcon = (iconName, props = {}) => {
   const IconComponent = iconMap[iconName] || Folder;
   return <IconComponent {...props} />;
 };
-
-
+

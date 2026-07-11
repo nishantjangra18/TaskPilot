@@ -165,4 +165,4 @@ export const filterDependencyTasks = (analysis, filter) => {
 };
 
 export const mergeDependency = (task, dependencyTask) => unique([...(task?.dependencies || []), getTaskId(dependencyTask)]);
-
+

@@ -105,7 +105,6 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Encrypt password using bcryptjs before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password') || !this.password) {
     return next();
@@ -115,11 +114,10 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// Match password
 userSchema.methods.matchPassword = async function (enteredPassword) {
   if (!this.password) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
 module.exports = mongoose.model('User', userSchema);
-
+

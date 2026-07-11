@@ -84,7 +84,6 @@ const toCalendarMeeting = (meeting) => {
   return { ...doc, state: getMeetingState(doc) };
 };
 
-
 const populateMeeting = (query) => query
   .populate('hostId', 'name email avatar title')
   .populate('participants.userId', 'name email avatar title')
@@ -670,19 +669,3 @@ exports.endMeeting = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -7,7 +7,6 @@ const connectDB = async () => {
   console.log('Connecting to database...');
 
   try {
-    // Attempt connecting to the primary MONGO_URI (Atlas)
     const conn = await mongoose.connect(primaryUri, {
       serverSelectionTimeoutMS: 5000 // 5 seconds timeout
     });
@@ -18,7 +17,6 @@ const connectDB = async () => {
     console.log(`Attempting fallback to local MongoDB at ${localUri}...`);
 
     try {
-      // Attempt connecting to local MongoDB
       const conn = await mongoose.connect(localUri, {
         serverSelectionTimeoutMS: 3000 // 3 seconds timeout
       });
@@ -37,4 +35,3 @@ const connectDB = async () => {
 };
 
 module.exports = connectDB;
-

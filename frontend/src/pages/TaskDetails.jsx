@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import Avatar from '../components/Avatar';
@@ -20,12 +20,9 @@ import {
   Check,
   Plus,
   AlertTriangle,
-  Clock,
   Edit,
   CheckCircle2,
-  ListTodo,
   ExternalLink,
-  ChevronDown,
   RefreshCw,
   Sparkles,
   Bug,
@@ -42,7 +39,6 @@ const TaskDetails = () => {
   const {
     projects,
     tasks,
-    activityLogs,
     users,
     currentUser,
     editTask,
@@ -71,12 +67,9 @@ const TaskDetails = () => {
   const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
-  // Quick status state
-  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const [ignoredDependencySuggestions, setIgnoredDependencySuggestions] = useState([]);
 
-  // File input ref for real uploads
-  const fileInputRef = React.useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (task) {
@@ -85,20 +78,7 @@ const TaskDetails = () => {
     }
   }, [task]);
 
-  // Filter project logs related to this task
-  const taskLogs = useMemo(() => {
-    if (!project || !task) return [];
-    const projId = project._id || project.id;
-    const taskTitle = task.title || '';
-    return activityLogs
-      .filter(log => 
-        log.projectId === projId && 
-        (log.message.includes(`"${taskTitle}"`) || 
-         log.message.includes(taskTitle) ||
-         (editTitleValue && (log.message.includes(`"${editTitleValue}"`) || log.message.includes(editTitleValue))))
-      )
-      .slice(0, 15);
-  }, [activityLogs, project, task, editTitleValue]);
+
   const projectTasks = useMemo(() => {
     if (!project) return [];
     const activeProjectId = project._id || project.id;
@@ -147,9 +127,6 @@ const TaskDetails = () => {
 
   // Retrieve user details
   const ownerId = project.owner?._id || project.owner || project.ownerId || 'u1';
-  const ownerUser = users.find(u => (u._id || u.id) === ownerId);
-  const memberUsers = users.filter(u => (project.members || []).some(m => (m._id || m) === (u._id || u.id)));
-  const allProjectParticipants = [ownerUser, ...memberUsers].filter(Boolean);
   const assigneeUser = users.find(u => (u._id || u.id) === taskAssigneeId);
   const assigneeRole = taskAssigneeId
     ? (taskAssigneeId?.toString() === ownerId?.toString() ? 'Owner' : 'Member')
@@ -181,67 +158,7 @@ const TaskDetails = () => {
     );
   };
 
-  // Handler: Assignee Update
-  const handleAssigneeChange = (nextAssigneeId) => {
-    if (!isCurrentOwner) {
-      alert("Permission Denied: Only project owners can reassign tasks.");
-      return;
-    }
-    const assignee = users.find(u => (u._id || u.id) === nextAssigneeId);
-    const tId = task._id || task.id;
-    editTask(tId, { assigneeId: nextAssigneeId, updatedAt: new Date().toISOString() });
-    logActivity(project._id || project.id, currentUser.id, `reassigned task "${task.title}" to ${assignee?.name || 'Unassigned'}`);
-  };
 
-  // Handler: Priority Update
-  const handlePriorityChange = (nextPriority) => {
-    if (!isCurrentOwner) {
-      alert("Permission Denied: Only project owners can modify priority.");
-      return;
-    }
-    const tId = task._id || task.id;
-    editTask(tId, { priority: nextPriority, updatedAt: new Date().toISOString() });
-    logActivity(project._id || project.id, currentUser.id, `updated priority of "${task.title}" to ${nextPriority.toUpperCase()}`);
-  };
-
-  // Handler: Due Date Update
-  const handleDueDateChange = (nextDueDate) => {
-    if (!isCurrentOwner) {
-      alert("Permission Denied: Only project owners can modify the due date.");
-      return;
-    }
-    const tId = task._id || task.id;
-    editTask(tId, { dueDate: nextDueDate, updatedAt: new Date().toISOString() });
-    logActivity(project._id || project.id, currentUser.id, `changed due date of "${task.title}" to ${nextDueDate}`);
-  };
-
-  // Handler: Task Type Update
-  const handleTypeChange = (nextType) => {
-    if (!isCurrentOwner) {
-      alert("Permission Denied: Only project owners can modify the task type.");
-      return;
-    }
-    const tId = task._id || task.id;
-    editTask(tId, { type: nextType, updatedAt: new Date().toISOString() });
-    
-    const typeLabels = { feature: 'Feature', bug: 'Bug', improvement: 'Improvement', research: 'Research', documentation: 'Documentation' };
-    logActivity(
-      project._id || project.id, 
-      currentUser.id, 
-      `updated type of task "${task.title}" to ${typeLabels[nextType] || nextType}`
-    );
-  };
-
-  // Handler: Due Time Update
-  const handleDueTimeChange = (nextDueTime) => {
-    if (!isCurrentOwner) {
-      alert("Permission Denied: Only project owners can modify the due time.");
-      return;
-    }
-    const tId = task._id || task.id;
-    editTask(tId, { dueTime: nextDueTime, updatedAt: new Date().toISOString() });
-    logActivity(project._id || project.id, currentUser.id, `changed due time of "${task.title}" to ${formatTime12h(nextDueTime) || 'No Time'}`);
-  };
 
   // Handler: Toggle Mark Complete
   const handleToggleComplete = () => {
@@ -457,14 +374,6 @@ const TaskDetails = () => {
       const files = Array.from(e.dataTransfer.files);
       files.forEach(file => uploadFile(file));
     }
-  };
-
-  const formatBytes = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const formatTime12h = (timeStr) => {
@@ -1272,15 +1181,4 @@ const DependencyTaskCard = ({ task, users, onOpenTask }) => {
   </button>;
 };
 export default TaskDetails;
-
-
-
-
-
-
-
-
-
-
-
-
+

@@ -5,13 +5,11 @@ const path = require('path');
 const fs = require('fs');
 const { protect } = require('../middleware/authMiddleware');
 
-// Ensure upload directory exists
 const uploadDir = path.join(__dirname, '../../uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Multer Storage config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
@@ -22,7 +20,6 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter for supported files
 const fileFilter = (req, file, cb) => {
   const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf', '.docx', '.zip', '.txt'];
   const ext = path.extname(file.originalname).toLowerCase();
@@ -36,26 +33,22 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-// @desc    Upload file to server
-// @route   POST /api/upload
-// @access  Private
 router.post('/', protect, upload.single('file'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Please select a file to upload' });
     }
 
-    // Return uploaded file metadata
     const fileUrl = `/uploads/${req.file.filename}`;
     res.status(201).json({
       success: true,
       data: {
         name: req.file.originalname,
         filename: req.file.filename,
-        size: (req.file.size / 1024).toFixed(1) + ' KB', // human readable size
+        size: (req.file.size / 1024).toFixed(1) + ' KB',
         type: path.extname(req.file.originalname).substring(1).toLowerCase(),
         url: fileUrl,
         uploadDate: new Date().toISOString().split('T')[0]

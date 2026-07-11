@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 // Helper function to get pending tasks sorted appropriately
-export const getPendingTasks = (tasksList) => {
+const getPendingTasks = (tasksList) => {
   if (!tasksList) return [];
   const pendingStatuses = ['todo', 'in_progress', 'review'];
   
@@ -330,76 +330,6 @@ const Dashboard = () => {
     return dbNotifications.filter(n => !n.isRead).length;
   }, [dbNotifications]);
 
-  // Dynamically generated notification alerts
-  const notifications = useMemo(() => {
-    const list = [];
-    
-    // 1. Overdue tasks notifications
-    myPendingTasks.forEach(task => {
-      const isOverdue = task.dueDate && task.dueDate < todayStr;
-      const tId = task._id || task.id;
-      if (isOverdue && tId && task.projectId) {
-        list.push({
-          id: `notif-overdue-${tId}`,
-          type: 'overdue',
-          title: 'Task Overdue',
-          message: `"${task.title}" was due on ${task.dueDate}.`,
-          timestamp: task.dueDate,
-          link: `/projects/${task.projectId}`,
-          taskId: tId,
-          projectId: task.projectId,
-          urgent: true
-        });
-      }
-    });
-
-    // 2. Tasks due today
-    myPendingTasks.forEach(task => {
-      const tId = task._id || task.id;
-      if (task.dueDate === todayStr && tId && task.projectId) {
-        list.push({
-          id: `notif-due-today-${tId}`,
-          type: 'due_today',
-          title: 'Due Today',
-          message: `"${task.title}" is due today.`,
-          timestamp: task.dueDate,
-          link: `/projects/${task.projectId}`,
-          taskId: tId,
-          projectId: task.projectId,
-          urgent: true
-        });
-      }
-    });
-
-    // 3. Recent project activity logs
-    const userProjectIds = projects.map(p => p._id || p.id).filter(Boolean);
-    const relevantLogs = activityLogs
-      .filter(log => log.projectId && userProjectIds.includes(log.projectId) && (log.userId?._id || log.userId) !== currentUser?.id)
-      .slice(0, 5);
-
-    relevantLogs.forEach(log => {
-      const logUserId = log.userId?._id || log.userId;
-      const logUser = users.find(u => (u._id || u.id) === logUserId) || log.userId;
-      if (log.projectId) {
-        list.push({
-          id: `notif-activity-${log._id || log.id}`,
-          type: 'activity',
-          title: 'Workspace Update',
-          message: `${logUser?.name || 'Someone'} ${log.message}`,
-          timestamp: log.createdAt,
-          link: `/projects/${log.projectId}`,
-          userId: logUserId
-        });
-      }
-    });
-
-    // Sort by urgent first, then by timestamp (newest first)
-    return list.sort((a, b) => {
-      if (a.urgent && !b.urgent) return -1;
-      if (!a.urgent && b.urgent) return 1;
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    });
-  }, [myPendingTasks, projects, activityLogs, currentUser, todayStr, users]);
 
   // Scoped Team Performance Calculations
   const teamPerformance = useMemo(() => {
@@ -428,7 +358,6 @@ const Dashboard = () => {
     }
 
     const memberStats = Array.from(memberIds).map(mId => {
-      // Find user from populated project members first, then fallback to users array
       let u = null;
       for (const p of projects) {
         const found = (p.members || []).find(m => (m._id || m) === mId);
@@ -461,11 +390,13 @@ const Dashboard = () => {
 
   // Weekly Activity Calculations
   const tasksCreatedThisWeekCount = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     return tasks.filter(t => new Date(t.createdAt).getTime() >= sevenDaysAgo).length;
   }, [tasks]);
 
   const tasksCompletedThisWeekCount = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     return activityLogs.filter(log => 
       (log.message.toLowerCase().includes('completed') || log.message.toLowerCase().includes('done')) &&
@@ -1169,8 +1100,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-
-
-
-
+

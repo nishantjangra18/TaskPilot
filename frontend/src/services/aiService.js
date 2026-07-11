@@ -21,7 +21,7 @@ const parseError = async (response) => {
       return message + '\n\nRaw DeepSeek response:\n' + String(data.rawResponse).slice(0, 3000);
     }
     return message;
-  } catch (error) {
+  } catch {
     return 'AI assistant request failed';
   }
 };

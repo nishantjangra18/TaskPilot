@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Activity, AlertCircle, Calendar, Check, CheckCircle, ChevronLeft, Clock, GitBranch, GripVertical, Inbox, Kanban, List, MessageCircle, MessageSquare,
@@ -32,7 +32,7 @@ const ProjectDetails = () => {
   const {
     projects, tasks, users, currentUser, activityLogs, addTask, editTask, deleteTask, editProject, deleteProject,
     addMemberToProject, removeMemberFromProject, searchUsersByEmail, sendInvitation,
-    activeMeetings, meetings, startProjectMeeting, joinProjectMeeting, endProjectMeeting,
+    activeMeetings, meetings, startProjectMeeting, joinProjectMeeting,
     startScheduledMeeting, scheduleProjectMeeting, updateProjectMeeting, cancelProjectMeeting,
   } = useApp();
 
@@ -181,9 +181,6 @@ const ProjectDetails = () => {
     if (!meeting?._id) return;
     await joinProjectMeeting(meeting._id);
     navigate(`/projects/${projectId}/meeting`);
-  };
-  const stopMeeting = async (meeting = activeMeeting) => {
-    if (meeting?._id) await endProjectMeeting(meeting._id);
   };
   const openScheduleMeetingModal = (meeting = null) => {
     setEditingMeeting(meeting);

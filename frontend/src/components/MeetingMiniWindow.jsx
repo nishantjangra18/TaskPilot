@@ -19,7 +19,7 @@ const MeetingMiniWindow = () => {
   const { activeMeetings = [], currentUser, projects = [], leaveProjectMeeting, endProjectMeeting } = useApp();
   const [muted, setMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);

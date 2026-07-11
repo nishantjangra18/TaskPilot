@@ -1,17 +1,14 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowRight, 
   FolderKanban, 
   CheckCircle2, 
-  Calendar,
   Sparkles,
-  LayoutDashboard,
   TrendingUp,
   Users,
   Folder,
   Bell,
-  MessageSquare,
   FileText,
   Sun,
   Moon
@@ -20,10 +17,10 @@ import { useTheme } from '../context/ThemeProvider';
 
 const Landing = () => {
   const { theme, toggleTheme } = useTheme();
-  const [isScrolled, setIsScrolled] = React.useState(false);
-  const [activeSection, setActiveSection] = React.useState('');
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('');
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleScroll = () => {
       // Navbar scroll effect
       if (window.scrollY > 10) {
@@ -56,7 +53,7 @@ const Landing = () => {
   }, []);
 
   // Intersection Observer for scroll-triggered reveal animations
-  React.useEffect(() => {
+  useEffect(() => {
     const observerOptions = {
       root: null,
       rootMargin: '0px',

@@ -29,4 +29,4 @@ router.put('/requests/:id/decline', declineConnectionRequest);
 router.delete('/requests/:id', cancelConnectionRequest);
 
 module.exports = router;
-
+

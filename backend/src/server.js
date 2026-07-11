@@ -1,14 +1,13 @@
-﻿const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 const connectDB = require('./config/db');
 const http = require('http');
 const { Server } = require('socket.io');
 
-// Load environment variables
 dotenv.config();
 
-// Connect to Database
 connectDB();
 
 const app = express();
@@ -20,10 +19,8 @@ const io = new Server(server, {
   }
 });
 
-// Store socket io on app instance
 app.set('io', io);
 
-// Handle socket.io connections
 io.on('connection', (socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
@@ -39,17 +36,14 @@ io.on('connection', (socket) => {
   });
 });
 
-// Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Basic sanity route
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the TaskPilot API' });
 });
 
-// Routes mounting
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
@@ -61,11 +55,8 @@ app.use('/api/chats', require('./routes/chatRoutes'));
 app.use('/api/network', require('./routes/networkRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
 
-// Expose static uploads folder
-const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Global Centralized Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
 
@@ -82,4 +73,4 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
-
+

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import io from 'socket.io-client';
 import { API_BASE_URL } from '../config/api';
@@ -432,8 +432,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-
-  const refreshNetwork = async () => {
+  async function refreshNetwork() {
     try {
       const [networkRes, incomingRes, outgoingRes, suggestionsRes] = await Promise.all([
         apiFetch('/network'),
@@ -454,7 +453,7 @@ export const AppProvider = ({ children }) => {
       console.error('Failed to refresh network:', err);
       return { connections: [], incoming: [], outgoing: [] };
     }
-  };
+  }
   const discoverNetworkUsers = async (query) => {
     const trimmed = query.trim();
     if (trimmed.length < 2) return [];
@@ -657,7 +656,6 @@ export const AppProvider = ({ children }) => {
     return res.data;
   };
 
-
   const startScheduledMeeting = async (meetingId) => {
     const res = await apiFetch(`/meetings/${meetingId}/start`, { method: 'POST' });
     if (res.success && res.data) {
@@ -805,30 +803,4 @@ export const useApp = () => {
   }
   return context;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+

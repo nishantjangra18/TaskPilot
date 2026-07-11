@@ -19,9 +19,6 @@ const validateConnectedMembers = async (ownerId, memberIds = []) => {
 
   return { allowed: true, memberIds: uniqueMemberIds };
 };
-// @desc    Create a project
-// @route   POST /api/projects
-// @access  Private
 exports.createProject = async (req, res) => {
   try {
     const { name, description, theme, visibility, members, icon, priority, deadline } = req.body;
@@ -56,7 +53,6 @@ exports.createProject = async (req, res) => {
       deadline: deadline || null,
     });
 
-    // Log project creation
     await ActivityLog.create({
       projectId: project._id,
       userId: req.user.id,
@@ -71,9 +67,6 @@ exports.createProject = async (req, res) => {
   }
 };
 
-// @desc    Get all user projects
-// @route   GET /api/projects
-// @access  Private
 exports.getProjects = async (req, res) => {
   try {
     // Return projects where user is owner or a member
@@ -87,9 +80,6 @@ exports.getProjects = async (req, res) => {
   }
 };
 
-// @desc    Get single project by ID
-// @route   GET /api/projects/:id
-// @access  Private
 exports.getProjectById = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
@@ -114,9 +104,6 @@ exports.getProjectById = async (req, res) => {
   }
 };
 
-// @desc    Update a project
-// @route   PUT /api/projects/:id
-// @access  Private
 exports.updateProject = async (req, res) => {
   try {
     let project = await Project.findById(req.params.id);
@@ -158,9 +145,6 @@ exports.updateProject = async (req, res) => {
   }
 };
 
-// @desc    Delete a project
-// @route   DELETE /api/projects/:id
-// @access  Private
 exports.deleteProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
@@ -195,9 +179,6 @@ exports.deleteProject = async (req, res) => {
   }
 };
 
-// @desc    Get all activity logs for user projects
-// @route   GET /api/projects/logs
-// @access  Private
 exports.getActivityLogs = async (req, res) => {
   try {
     const projects = await Project.find({
@@ -216,4 +197,4 @@ exports.getActivityLogs = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
+

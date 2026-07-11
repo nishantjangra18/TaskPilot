@@ -83,7 +83,6 @@ Rules:
 - Prefer 1 to 4 high-value actions.
 - If no safe action exists, return an empty actions array and explain why in response.`;
 
-
 const PROJECT_CREATOR_SYSTEM_PROMPT = `You are TaskPilot AI Project Creator Mode.
 
 You are a Senior Engineering Manager generating a TaskPilot project-management draft from natural language. You are not a coding assistant in this mode.
@@ -396,7 +395,6 @@ const normalizeActions = (actionPayload) => {
   };
 };
 
-
 const normalizeStringArray = (value) => Array.isArray(value)
   ? value.map(item => String(item || '').trim()).filter(Boolean).slice(0, 30)
   : [];
@@ -426,7 +424,6 @@ const normalizeCreatorTask = (task = {}) => ({
     estimatedHours: Number.isFinite(Number(subtask?.estimatedHours)) ? Math.max(0, Number(subtask.estimatedHours)) : 0,
   })),
 });
-
 
 const isPlainObject = (value) => Boolean(value && typeof value === 'object' && !Array.isArray(value));
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
@@ -614,7 +611,6 @@ const callDeepSeekActionSuggestions = async ({ message, conversationHistory = []
   }
 };
 
-
 const callDeepSeekProjectCreator = async ({ message, conversationHistory = [], userId, workspaceContext = null }) => {
   if (!message || typeof message !== 'string' || !message.trim()) {
     throw new DeepSeekError('Project description is required', 400, 'MESSAGE_REQUIRED');
@@ -679,9 +675,4 @@ module.exports = {
   callDeepSeekProjectCreator,
   createDeepSeekStream,
 };
-
-
-
-
-
-
+

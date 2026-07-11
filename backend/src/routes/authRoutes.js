@@ -12,4 +12,4 @@ router.route('/profile')
 router.get('/users', protect, getUsers);
 
 module.exports = router;
-
+

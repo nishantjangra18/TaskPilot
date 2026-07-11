@@ -44,7 +44,6 @@ const validateTaskAssignee = async (actorId, assigneeId, project) => {
     ? { allowed: true }
     : { allowed: false, message: 'Task assignee must be an accepted connection' };
 };
-// Helper to check user permission to access a project
 const checkProjectAccess = async (projectId, userId) => {
   const project = await Project.findById(projectId);
   if (!project) return { allowed: false, status: 404, message: 'Project not found' };
@@ -58,9 +57,6 @@ const checkProjectAccess = async (projectId, userId) => {
   return { allowed: true, project };
 };
 
-// @desc    Create a task
-// @route   POST /api/tasks
-// @access  Private
 exports.createTask = async (req, res) => {
   try {
     const { projectId, title, description, taskType, priority, status, assignee, dueDate, dueTime, attachments } = req.body;
@@ -109,9 +105,6 @@ exports.createTask = async (req, res) => {
   }
 };
 
-// @desc    Get tasks - if projectId is specified, get tasks for that project; otherwise get all tasks for user's projects
-// @route   GET /api/tasks
-// @access  Private
 exports.getTasks = async (req, res) => {
   try {
     const { projectId } = req.query;
@@ -145,9 +138,6 @@ exports.getTasks = async (req, res) => {
   }
 };
 
-// @desc    Get single task details
-// @route   GET /api/tasks/:id
-// @access  Private
 exports.getTaskById = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id)
@@ -169,9 +159,6 @@ exports.getTaskById = async (req, res) => {
   }
 };
 
-// @desc    Update a task
-// @route   PUT /api/tasks/:id
-// @access  Private
 exports.updateTask = async (req, res) => {
   try {
     let task = await Task.findById(req.params.id);
@@ -249,9 +236,6 @@ exports.updateTask = async (req, res) => {
   }
 };
 
-// @desc    Delete a task
-// @route   DELETE /api/tasks/:id
-// @access  Private
 exports.deleteTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -284,9 +268,6 @@ exports.deleteTask = async (req, res) => {
   }
 };
 
-// @desc    Add a comment to a task
-// @route   POST /api/tasks/:id/comments
-// @access  Private
 exports.addComment = async (req, res) => {
   try {
     const { text } = req.body;
@@ -337,4 +318,4 @@ exports.addComment = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
+

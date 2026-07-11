@@ -7,9 +7,6 @@ const Message = require('../models/Message');
 const { syncProjectConversation } = require('./chatController');
 const { areAcceptedConnections } = require('../utils/networkAccess');
 
-// @desc    Send a project invitation
-// @route   POST /api/invitations
-// @access  Private
 exports.sendInvitation = async (req, res) => {
   try {
     const { projectId, receiverId } = req.body;
@@ -18,24 +15,20 @@ exports.sendInvitation = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Project ID and Receiver ID are required' });
     }
 
-    // 1. Fetch Project
     const project = await Project.findById(projectId);
     if (!project) {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
 
-    // 2. Verify sender is owner
     if (project.owner.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Only project owners can invite members' });
     }
 
-    // 3. Fetch Receiver User
     const receiver = await User.findById(receiverId);
     if (!receiver) {
       return res.status(404).json({ success: false, message: 'Invited user not found' });
     }
 
-    // 4. Check if receiver is already owner or member
     const isOwner = project.owner.toString() === receiverId;
     const isMember = project.members.some(m => m.toString() === receiverId);
     if (isOwner || isMember) {
@@ -47,7 +40,6 @@ exports.sendInvitation = async (req, res) => {
       return res.status(403).json({ success: false, message: 'You can only invite accepted connections to projects' });
     }
 
-    // 5. Check if there's a pending invitation already
     const existingInvitation = await Invitation.findOne({
       projectId,
       receiverId,
@@ -57,7 +49,6 @@ exports.sendInvitation = async (req, res) => {
       return res.status(400).json({ success: false, message: 'An invitation is already pending for this user' });
     }
 
-    // 6. Create Invitation
     const invitation = await Invitation.create({
       projectId,
       projectName: project.name,
@@ -68,14 +59,12 @@ exports.sendInvitation = async (req, res) => {
       status: 'pending'
     });
 
-    // 7. Create Notification for receiver
     const notification = await Notification.create({
       userId: receiverId,
       type: 'invitation_received',
       message: `You have been invited to join ${project.name}`
     });
 
-    // 8. Real-time updates via Socket.IO
     const io = req.app.get('io');
     if (io) {
       io.to(receiverId.toString()).emit('invitation_received', invitation);
@@ -88,9 +77,6 @@ exports.sendInvitation = async (req, res) => {
   }
 };
 
-// @desc    Get all pending invitations for logged-in user
-// @route   GET /api/invitations/pending
-// @access  Private
 exports.getPendingInvitations = async (req, res) => {
   try {
     const invitations = await Invitation.find({
@@ -104,9 +90,6 @@ exports.getPendingInvitations = async (req, res) => {
   }
 };
 
-// @desc    Accept a project invitation
-// @route   PUT /api/invitations/:id/accept
-// @access  Private
 exports.acceptInvitation = async (req, res) => {
   try {
     const invitation = await Invitation.findById(req.params.id);
@@ -124,7 +107,6 @@ exports.acceptInvitation = async (req, res) => {
       return res.status(400).json({ success: false, message: `Invitation has already been ${invitation.status}` });
     }
 
-    // 1. Update project members list
     const project = await Project.findById(invitation.projectId);
     if (!project) {
       // If project is deleted, mark invitation as rejected/invalid
@@ -142,7 +124,6 @@ exports.acceptInvitation = async (req, res) => {
 
     const projectConversation = await syncProjectConversation(project);
 
-    // 2. Update Invitation status
     invitation.status = 'accepted';
     invitation.respondedAt = Date.now();
     await invitation.save();
@@ -160,21 +141,18 @@ exports.acceptInvitation = async (req, res) => {
       createdAt: joinMessage.createdAt,
     };
     await projectConversation.save();
-    // 3. Log Activity
     await ActivityLog.create({
       projectId: project._id,
       userId: req.user.id,
       message: `joined project "${project.name}" via invitation.`
     });
 
-    // 4. Create Notification for project owner (sender)
     const notification = await Notification.create({
       userId: invitation.senderId,
       type: 'invitation_accepted',
       message: `${req.user.name} accepted your invitation to join ${project.name}.`
     });
 
-    // 5. Emit real-time updates via Socket.IO
     const io = req.app.get('io');
     if (io) {
       // Notify sender
@@ -195,9 +173,6 @@ exports.acceptInvitation = async (req, res) => {
   }
 };
 
-// @desc    Reject a project invitation
-// @route   PUT /api/invitations/:id/reject
-// @access  Private
 exports.rejectInvitation = async (req, res) => {
   try {
     const invitation = await Invitation.findById(req.params.id);
@@ -215,19 +190,16 @@ exports.rejectInvitation = async (req, res) => {
       return res.status(400).json({ success: false, message: `Invitation has already been ${invitation.status}` });
     }
 
-    // 1. Update status
     invitation.status = 'rejected';
     invitation.respondedAt = Date.now();
     await invitation.save();
 
-    // 2. Create Notification for project owner
     const notification = await Notification.create({
       userId: invitation.senderId,
       type: 'invitation_rejected',
       message: `${req.user.name} declined your invitation to join ${invitation.projectName}.`
     });
 
-    // 3. Emit real-time updates
     const io = req.app.get('io');
     if (io) {
       io.to(invitation.senderId.toString()).emit('notification_received', notification);
@@ -239,4 +211,4 @@ exports.rejectInvitation = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
+

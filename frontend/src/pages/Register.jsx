@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeProvider';
 import GoogleAuthButton, { AuthDivider } from '../components/GoogleAuthButton';
@@ -39,7 +38,7 @@ const Register = () => {
         setError(res.message);
         showAuthToast({ type: 'error', title: 'Authentication failed', description: res.message });
       }
-    } catch (err) {
+    } catch {
       setLoading(false);
       const message = 'An unexpected error occurred. Please try again.';
       setError(message);
@@ -172,4 +171,4 @@ const Register = () => {
 };
 
 export default Register;
-
+
